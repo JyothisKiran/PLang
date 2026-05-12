@@ -1,0 +1,78 @@
+# =========================
+# Dependencies
+# =========================
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# =========================
+# Build output
+# (your compiler output to TS/JS)
+# =========================
+dist/
+out/
+build/
+generated/
+*.js
+*.js.map
+*.d.ts
+*.tsbuildinfo
+
+# If you generate TypeScript files from your language:
+generated-ts/
+output-ts/
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Runtime / cache
+# =========================
+.cache/
+.tmp/
+temp/
+.parcel-cache/
+.eslintcache
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Testing / coverage
+# =========================
+coverage/
+.nyc_output/
+
+# =========================
+# Compiler specific (your project)
+# =========================
+ast.json
+tokens.json
+parser-output/
+intermediate/
+symbol-table.json
