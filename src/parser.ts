@@ -24,6 +24,7 @@ export class Parser {
   private parseFactor(): ASTNode {
     const token = this.currentToken();
 
+    // NUMBER
     if (token.type === TokenType.NUMBER) {
       this.advance();
       return {
@@ -32,7 +33,31 @@ export class Parser {
       };
     }
 
-    throw new Error("Unexpected token in factor");
+    // 🔥 PARENTHESES FIX
+    if (token.type === TokenType.LPAREN) {
+      this.advance(); // skip '('
+
+      const expr = this.parseExpression();
+
+      if (this.currentToken().type !== TokenType.RPAREN) {
+        throw new Error("Expected closing parenthesis");
+      }
+
+      this.advance(); // skip ')'
+
+      return expr;
+    }
+
+    if (token.type === TokenType.IDENTIFIER) {
+      this.advance();
+
+      return {
+        type: "Identifier",
+        name: token.value!,
+      };
+    }
+
+    throw new Error(`Unexpected token: ${token.type}`);
   }
 
   private parseTerm(): ASTNode {
@@ -94,11 +119,42 @@ export class Parser {
     };
   }
 
+  private parseVariableDeclaration(): ASTNode {
+    this.advance(); // skip LET
+
+    const nameToken = this.currentToken();
+
+    if (nameToken.type !== TokenType.IDENTIFIER) {
+      throw new Error("Expected variable name");
+    }
+
+    const name = nameToken.value!;
+    this.advance();
+
+    if (this.currentToken().type !== TokenType.ASSIGN) {
+      throw new Error("Expected =");
+    }
+
+    this.advance(); // skip '='
+
+    const value = this.parseExpression();
+
+    return {
+      type: "VariableDeclaration",
+      name,
+      value,
+    };
+  }
+
   private parseStatement(): ASTNode {
     const token = this.currentToken();
 
     if (token.type === TokenType.SPILLTEA) {
       return this.parsePrintStatement();
+    }
+
+    if (token.type === TokenType.LET) {
+      return this.parseVariableDeclaration();
     }
 
     throw new Error("Unknown statement");

@@ -2,7 +2,9 @@ export type ASTNode =
   | Program
   | PrintStatement
   | BinaryExpression
-  | NumberLiteral;
+  | NumberLiteral
+  | VariableDeclaration
+  | Identifier;
 
 export interface Program {
   type: "Program";
@@ -12,6 +14,17 @@ export interface Program {
 export interface PrintStatement {
   type: "PrintStatement";
   expression: ASTNode;
+}
+
+export interface VariableDeclaration {
+  type: "VariableDeclaration";
+  name: string;
+  value: ASTNode;
+}
+
+export interface Identifier {
+  type: "Identifier";
+  name: string;
 }
 
 export interface BinaryExpression {

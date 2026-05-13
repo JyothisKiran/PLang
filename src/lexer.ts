@@ -55,7 +55,14 @@ export class Lexer {
       };
     }
 
-    throw new Error(`Unknown identifier: ${result}`);
+    if (result === "let") {
+      return { type: TokenType.LET };
+    }
+
+    return {
+      type: TokenType.IDENTIFIER,
+      value: result,
+    };
   }
 
   public tokenize(): Token[] {
@@ -103,6 +110,10 @@ export class Lexer {
 
         case ")":
           tokens.push({ type: TokenType.RPAREN });
+          break;
+
+        case "=":
+          tokens.push({ type: TokenType.ASSIGN });
           break;
 
         default:

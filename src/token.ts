@@ -10,6 +10,10 @@ export enum TokenType {
 
   SPILLTEA = "SPILLTEA",
 
+  LET = "LET",
+  IDENTIFIER = "IDENTIFIER",
+  ASSIGN = "ASSIGN",
+
   EOF = "EOF",
 }
 
