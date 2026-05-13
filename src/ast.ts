@@ -4,6 +4,8 @@ export type ASTNode =
   | BinaryExpression
   | NumberLiteral
   | VariableDeclaration
+  | IfStatement
+  | ComparisonExpression
   | Identifier;
 
 export interface Program {
@@ -37,4 +39,17 @@ export interface BinaryExpression {
 export interface NumberLiteral {
   type: "NumberLiteral";
   value: number;
+}
+
+export interface IfStatement {
+  type: "IfStatement";
+  condition: ASTNode;
+  body: ASTNode[];
+}
+
+export interface ComparisonExpression {
+  type: "ComparisonExpression";
+  left: ASTNode;
+  operator: string;
+  right: ASTNode;
 }

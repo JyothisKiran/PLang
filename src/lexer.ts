@@ -27,7 +27,6 @@ export class Lexer {
   }
 
   private number(): Token {
-    
     let result = "";
 
     while (this.currentChar && /[0-9]/.test(this.currentChar)) {
@@ -59,6 +58,10 @@ export class Lexer {
       return { type: TokenType.LET };
     }
 
+    if (result === "if") {
+      return { type: TokenType.IF };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,
@@ -87,6 +90,19 @@ export class Lexer {
         continue;
       }
 
+      if (this.currentChar === "=") {
+        this.advance();
+
+        if (this.currentChar === "=") {
+          tokens.push({ type: TokenType.EQUAL_EQUAL });
+          this.advance();
+        } else {
+          tokens.push({ type: TokenType.ASSIGN });
+        }
+
+        continue;
+      }
+
       switch (this.currentChar) {
         case "+":
           tokens.push({ type: TokenType.PLUS });
@@ -112,8 +128,21 @@ export class Lexer {
           tokens.push({ type: TokenType.RPAREN });
           break;
 
-        case "=":
-          tokens.push({ type: TokenType.ASSIGN });
+
+        case "{":
+          tokens.push({ type: TokenType.LBRACE });
+          break;
+
+        case "}":
+          tokens.push({ type: TokenType.RBRACE });
+          break;
+
+        case ">":
+          tokens.push({ type: TokenType.GREATER });
+          break;
+
+        case "<":
+          tokens.push({ type: TokenType.LESS });
           break;
 
         default:

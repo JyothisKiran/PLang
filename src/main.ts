@@ -5,9 +5,10 @@ import { Environment } from "./environment";
 
 const source = `
 let x = 10
-let y = 20
-let z = x + y * 2
-spilltea(z)
+
+if (x == 10) {
+    spilltea(100 + 20 * 3)
+}
 `;
 
 const lexer = new Lexer(source);

@@ -146,6 +146,74 @@ export class Parser {
     };
   }
 
+  private parseComparisonExpression(): ASTNode {
+    let left = this.parseExpression();
+
+    const token = this.currentToken();
+
+    if (
+      token.type === TokenType.GREATER ||
+      token.type === TokenType.LESS ||
+      token.type === TokenType.EQUAL_EQUAL
+    ) {
+      this.advance();
+
+      const right = this.parseExpression();
+
+      return {
+        type: "ComparisonExpression",
+        left,
+        operator:
+          token.type === TokenType.GREATER
+            ? ">"
+            : token.type === TokenType.LESS
+              ? "<"
+              : "==",
+        right,
+      };
+    }
+
+    return left;
+  }
+
+  private parseIfStatement(): ASTNode {
+    this.advance(); // skip IF
+
+    if (this.currentToken().type !== TokenType.LPAREN) {
+      throw new Error("Expected ( after if");
+    }
+
+    this.advance(); // skip (
+
+    const condition = this.parseComparisonExpression();
+
+    if (this.currentToken().type !== TokenType.RPAREN) {
+      throw new Error("Expected ) after condition");
+    }
+
+    this.advance(); // skip )
+
+    if (this.currentToken().type !== TokenType.LBRACE) {
+      throw new Error("Expected {");
+    }
+
+    this.advance(); // skip {
+
+    const body: ASTNode[] = [];
+
+    while (this.currentToken().type !== TokenType.RBRACE) {
+      body.push(this.parseStatement());
+    }
+
+    this.advance(); // skip }
+
+    return {
+      type: "IfStatement",
+      condition,
+      body,
+    };
+  }
+
   private parseStatement(): ASTNode {
     const token = this.currentToken();
 
@@ -157,6 +225,9 @@ export class Parser {
       return this.parseVariableDeclaration();
     }
 
+    if (token.type === TokenType.IF) {
+      return this.parseIfStatement();
+    }
     throw new Error("Unknown statement");
   }
 

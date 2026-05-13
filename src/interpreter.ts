@@ -4,11 +4,12 @@ import {
   PrintStatement,
   BinaryExpression,
   NumberLiteral,
+  ComparisonExpression,
+  IfStatement,
 } from "./ast";
 import { Environment } from "./environment";
 
 export class Interpreter {
-
   constructor(private env: Environment) {}
 
   private visitProgram(node: Program) {
@@ -49,6 +50,35 @@ export class Interpreter {
     }
   }
 
+  private visitComparisonExpression(node: ComparisonExpression) {
+    const left = Number(this.interpret(node.left));
+    const right = Number(this.interpret(node.right));
+
+    switch (node.operator) {
+      case ">":
+        return left > right;
+
+      case "<":
+        return left < right;
+
+      case "==":
+        return left === right;
+
+      default:
+        throw new Error("Unknown comparison operator");
+    }
+  }
+
+  private visitIfStatement(node: IfStatement) {
+    const condition = this.interpret(node.condition);
+
+    if (condition) {
+      for (const statement of node.body) {
+        this.interpret(statement);
+      }
+    }
+  }
+
   public interpret(node: ASTNode): unknown {
     switch (node.type) {
       case "Program":
@@ -69,6 +99,12 @@ export class Interpreter {
 
       case "NumberLiteral":
         return this.visitNumberLiteral(node);
+
+      case "IfStatement":
+        return this.visitIfStatement(node);
+
+      case "ComparisonExpression":
+        return this.visitComparisonExpression(node);
 
       default:
         throw new Error(`Unknown node type`);

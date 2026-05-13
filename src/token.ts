@@ -10,9 +10,19 @@ export enum TokenType {
 
   SPILLTEA = "SPILLTEA",
 
+// Keywords
   LET = "LET",
   IDENTIFIER = "IDENTIFIER",
   ASSIGN = "ASSIGN",
+
+  IF = "IF",
+  LBRACE = "LBRACE",
+  RBRACE = "RBRACE",
+
+  GREATER = "GREATER",
+  LESS = "LESS",
+
+  EQUAL_EQUAL = "EQUAL_EQUAL",
 
   EOF = "EOF",
 }
