@@ -11,4 +11,12 @@ export class Environment {
     }
     return this.values.get(name);
   }
+
+  assign(name: string, value: any) {
+    if (!this.values.has(name)) {
+      throw new Error(`Undefined variable: ${name}`);
+    }
+
+    this.values.set(name, value);
+  }
 }

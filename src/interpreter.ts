@@ -6,6 +6,7 @@ import {
   NumberLiteral,
   ComparisonExpression,
   IfStatement,
+  AssignmentExpression,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -79,6 +80,14 @@ export class Interpreter {
     }
   }
 
+  private visitAssignmentExpression(node: AssignmentExpression) {
+    const value = this.interpret(node.value);
+
+    this.env.assign(node.name, value);
+
+    return value;
+  }
+
   public interpret(node: ASTNode): unknown {
     switch (node.type) {
       case "Program":
@@ -105,6 +114,9 @@ export class Interpreter {
 
       case "ComparisonExpression":
         return this.visitComparisonExpression(node);
+
+      case "AssignmentExpression":
+        return this.visitAssignmentExpression(node);
 
       default:
         throw new Error(`Unknown node type`);

@@ -214,6 +214,26 @@ export class Parser {
     };
   }
 
+  private parseAssignmentExpression(): ASTNode {
+  const name = this.currentToken().value!;
+
+  this.advance();
+
+  if (this.currentToken().type !== TokenType.ASSIGN) {
+    throw new Error("Expected =");
+  }
+
+  this.advance(); // skip '='
+
+  const value = this.parseExpression();
+
+  return {
+    type: "AssignmentExpression",
+    name,
+    value,
+  };
+}
+
   private parseStatement(): ASTNode {
     const token = this.currentToken();
 
@@ -227,6 +247,10 @@ export class Parser {
 
     if (token.type === TokenType.IF) {
       return this.parseIfStatement();
+    }
+
+    if (token.type === TokenType.IDENTIFIER) {
+      return this.parseAssignmentExpression();
     }
     throw new Error("Unknown statement");
   }

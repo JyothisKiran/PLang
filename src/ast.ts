@@ -6,6 +6,7 @@ export type ASTNode =
   | VariableDeclaration
   | IfStatement
   | ComparisonExpression
+  | AssignmentExpression
   | Identifier;
 
 export interface Program {
@@ -52,4 +53,10 @@ export interface ComparisonExpression {
   left: ASTNode;
   operator: string;
   right: ASTNode;
+}
+
+export interface AssignmentExpression {
+  type: "AssignmentExpression";
+  name: string;
+  value: ASTNode;
 }

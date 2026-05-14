@@ -4,18 +4,23 @@ import { Interpreter } from "./interpreter";
 import { Environment } from "./environment";
 
 const source = `
-let x = 10
+let x = 1
 
-if (x == 10) {
-    spilltea(100 + 20 * 3)
-}
+x = x * 10
+
+spilltea(x)
 `;
 
 const lexer = new Lexer(source);
 const tokens = lexer.tokenize();
 
+console.log(tokens);
+
+
 const parser = new Parser(tokens);
 const ast = parser.parseProgram();
+
+console.log(JSON.stringify(ast, null, 2));
 
 const env = new Environment();
 const interpreter = new Interpreter(env);
