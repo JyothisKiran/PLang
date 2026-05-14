@@ -62,6 +62,10 @@ export class Lexer {
       return { type: TokenType.IF };
     }
 
+    if (result === "while") {
+      return { type: TokenType.WHILE };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,

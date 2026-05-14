@@ -7,6 +7,7 @@ import {
   ComparisonExpression,
   IfStatement,
   AssignmentExpression,
+  WhileStatement,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -88,6 +89,14 @@ export class Interpreter {
     return value;
   }
 
+  private visitWhileStatement(node: WhileStatement) {    
+    while (this.interpret(node.condition)) {
+      for (const statement of node.body) {
+        this.interpret(statement);
+      }
+    }
+  }
+
   public interpret(node: ASTNode): unknown {
     switch (node.type) {
       case "Program":
@@ -117,6 +126,9 @@ export class Interpreter {
 
       case "AssignmentExpression":
         return this.visitAssignmentExpression(node);
+
+      case "WhileStatement":
+        return this.visitWhileStatement(node);
 
       default:
         throw new Error(`Unknown node type`);

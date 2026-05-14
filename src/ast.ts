@@ -7,6 +7,7 @@ export type ASTNode =
   | IfStatement
   | ComparisonExpression
   | AssignmentExpression
+  | WhileStatement
   | Identifier;
 
 export interface Program {
@@ -59,4 +60,10 @@ export interface AssignmentExpression {
   type: "AssignmentExpression";
   name: string;
   value: ASTNode;
+}
+
+export interface WhileStatement {
+  type: "WhileStatement";
+  condition: ASTNode;
+  body: ASTNode[];
 }

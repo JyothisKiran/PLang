@@ -215,24 +215,62 @@ export class Parser {
   }
 
   private parseAssignmentExpression(): ASTNode {
-  const name = this.currentToken().value!;
+    const name = this.currentToken().value!;
 
-  this.advance();
+    this.advance();
 
-  if (this.currentToken().type !== TokenType.ASSIGN) {
-    throw new Error("Expected =");
+    if (this.currentToken().type !== TokenType.ASSIGN) {
+      throw new Error("Expected =");
+    }
+
+    this.advance(); // skip '='
+
+    const value = this.parseExpression();
+
+    return {
+      type: "AssignmentExpression",
+      name,
+      value,
+    };
   }
 
-  this.advance(); // skip '='
+  private parseWhileStatement(): ASTNode {
+    this.advance(); // skip WHILE
 
-  const value = this.parseExpression();
+    if (this.currentToken().type !== TokenType.LPAREN) {
+      throw new Error("Expected (");
+    }
 
-  return {
-    type: "AssignmentExpression",
-    name,
-    value,
-  };
-}
+    this.advance();
+
+    const condition = this.parseComparisonExpression();
+
+    if (this.currentToken().type !== TokenType.RPAREN) {
+      throw new Error("Expected )");
+    }
+
+    this.advance();
+
+    if (this.currentToken().type !== TokenType.LBRACE) {
+      throw new Error("Expected {");
+    }
+
+    this.advance();
+
+    const body: ASTNode[] = [];
+
+    while (this.currentToken().type !== TokenType.RBRACE) {
+      body.push(this.parseStatement());
+    }
+
+    this.advance(); // skip }
+
+    return {
+      type: "WhileStatement",
+      condition,
+      body,
+    };
+  }
 
   private parseStatement(): ASTNode {
     const token = this.currentToken();
@@ -252,6 +290,11 @@ export class Parser {
     if (token.type === TokenType.IDENTIFIER) {
       return this.parseAssignmentExpression();
     }
+
+    if (token.type === TokenType.WHILE) {
+      return this.parseWhileStatement();
+    }
+
     throw new Error("Unknown statement");
   }
 
