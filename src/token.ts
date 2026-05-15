@@ -29,6 +29,8 @@ export enum TokenType {
   RETURN = "RETURN",
   COMMA = "COMMA",
 
+  STRING = "STRING",
+
   EOF = "EOF",
 }
 

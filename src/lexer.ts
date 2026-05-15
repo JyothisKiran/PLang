@@ -40,6 +40,24 @@ export class Lexer {
     };
   }
 
+  private string(): Token {
+    let result = "";
+
+    this.advance(); // skip opening quote
+
+    while (this.currentChar && this.currentChar !== '"') {
+      result += this.currentChar;
+      this.advance();
+    }
+
+    this.advance(); // skip closing quote
+
+    return {
+      type: TokenType.STRING,
+      value: result,
+    };
+  }
+
   private identifier(): Token {
     let result = "";
 
@@ -87,6 +105,12 @@ export class Lexer {
       // Skip spaces
       if (/\s/.test(this.currentChar)) {
         this.skipWhitespace();
+        continue;
+      }
+
+      // Strings
+      if (this.currentChar === '"') {
+        tokens.push(this.string());
         continue;
       }
 

@@ -24,6 +24,15 @@ export class Parser {
   private parseFactor(): ASTNode {
     const token = this.currentToken();
 
+    if (token.type === TokenType.STRING) {
+      this.advance();
+
+      return {
+        type: "StringLiteral",
+        value: token.value!,
+      };
+    }
+
     // NUMBER
     if (token.type === TokenType.NUMBER) {
       this.advance();

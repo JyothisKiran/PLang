@@ -37,12 +37,20 @@ export class Interpreter {
   }
 
   private visitBinaryExpression(node: BinaryExpression) {
-    const left = this.interpret(node.left);
-    const right = this.interpret(node.right);
+    const left: any = this.interpret(node.left);
+    const right: any = this.interpret(node.right);
 
     switch (node.operator) {
       case "+":
-        return Number(left) + Number(right);
+        if (typeof left === "number" && typeof right === "number") {
+          return left + right;
+        }
+
+        if (typeof left === "string" || typeof right === "string") {
+          return String(left) + String(right);
+        }
+
+        throw new Error("Invalid '+' operation");
 
       case "-":
         return Number(left) - Number(right);
@@ -199,6 +207,9 @@ export class Interpreter {
 
       case "CallExpression":
         return this.visitCallExpression(node);
+
+      case "StringLiteral":
+        return node.value;
 
       default:
         throw new Error(`Unknown node type`);

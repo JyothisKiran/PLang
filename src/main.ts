@@ -4,16 +4,12 @@ import { Interpreter } from "./interpreter";
 import { Environment } from "./environment";
 
 const source = `
-fn fact(n) {
-
-  if (n == 0) {
-    return 1
-  }
-
-  return n * fact(n - 1)
+fn greet(name) {
+  return "hello " + name
 }
 
-spilltea(fact(5))
+
+print(greet("john"))
 `;
 
 const lexer = new Lexer(source);

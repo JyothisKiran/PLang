@@ -11,7 +11,8 @@ export type ASTNode =
   | FunctionDeclaration
   | CallExpression
   | ReturnStatement
-  | Identifier;
+  | Identifier
+  | StringLiteral;
 
 export interface Program {
   type: "Program";
@@ -87,4 +88,9 @@ export interface CallExpression {
 export interface ReturnStatement {
   type: "ReturnStatement";
   value: ASTNode;
+}
+
+export interface StringLiteral {
+  type: "StringLiteral";
+  value: string;
 }
