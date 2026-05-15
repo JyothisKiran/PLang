@@ -4,15 +4,16 @@ import { Interpreter } from "./interpreter";
 import { Environment } from "./environment";
 
 const source = `
-fn test() {
-  if (1 == 1) {
-    return 5
+fn fact(n) {
+
+  if (n == 0) {
+    return 1
   }
 
-  spilltea(100)
+  return n * fact(n - 1)
 }
 
-spilltea(test())
+spilltea(fact(5))
 `;
 
 const lexer = new Lexer(source);

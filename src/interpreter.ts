@@ -18,7 +18,11 @@ export class Interpreter {
 
   private visitProgram(node: Program) {
     for (const statement of node.body) {
-      this.interpret(statement);
+      const result = this.interpret(statement);
+
+      if (result instanceof ReturnValue) {
+        return result;
+      }
     }
   }
 
@@ -78,7 +82,11 @@ export class Interpreter {
 
     if (condition) {
       for (const statement of node.body) {
-        this.interpret(statement);
+        const result = this.interpret(statement);
+
+        if (result instanceof ReturnValue) {
+          return result;
+        }
       }
     }
   }
@@ -94,7 +102,11 @@ export class Interpreter {
   private visitWhileStatement(node: WhileStatement) {
     while (this.interpret(node.condition)) {
       for (const statement of node.body) {
-        this.interpret(statement);
+        const result = this.interpret(statement);
+
+        if (result instanceof ReturnValue) {
+          return result;
+        }
       }
     }
   }
@@ -102,48 +114,48 @@ export class Interpreter {
   private functions = new Map<string, FunctionDeclaration>();
 
   private visitCallExpression(node: CallExpression) {
-  const fn = this.functions.get(node.callee);
+    const fn = this.functions.get(node.callee);
 
-  if (!fn) {
-    throw new Error(`Undefined function: ${node.callee}`);
-  }
-
-  // local scope
-  const localEnv = new Environment(this.env);
-
-  // bind parameters
-  for (let i = 0; i < fn.params.length; i++) {
-    const paramName = fn.params[i];
-    const argNode = node.args[i];
-
-    if (paramName === undefined) {
-      throw new Error("Function parameter name is missing");
+    if (!fn) {
+      throw new Error(`Undefined function: ${node.callee}`);
     }
 
-    if (!argNode) {
-      throw new Error(`Missing argument for parameter '${paramName}'`);
-    }
+    // local scope
+    const localEnv = new Environment(this.env);
 
-    const argValue = this.interpret(argNode);
+    // bind parameters
+    for (let i = 0; i < fn.params.length; i++) {
+      const paramName = fn.params[i];
+      const argNode = node.args[i];
 
-    localEnv.declare(paramName, argValue);
-  }
-
-  const previousEnv = this.env;
-  this.env = localEnv;
-
-  try {
-    for (const statement of fn.body) {
-      const result = this.interpret(statement);
-
-      if (result instanceof ReturnValue) {
-        return result.value;
+      if (paramName === undefined) {
+        throw new Error("Function parameter name is missing");
       }
+
+      if (!argNode) {
+        throw new Error(`Missing argument for parameter '${paramName}'`);
+      }
+
+      const argValue = this.interpret(argNode);
+
+      localEnv.declare(paramName, argValue);
     }
-  } finally {
-    this.env = previousEnv;
+
+    const previousEnv = this.env;
+    this.env = localEnv;
+
+    try {
+      for (const statement of fn.body) {
+        const result = this.interpret(statement);
+
+        if (result instanceof ReturnValue) {
+          return result.value;
+        }
+      }
+    } finally {
+      this.env = previousEnv;
+    }
   }
-}
 
   public interpret(node: ASTNode): unknown {
     switch (node.type) {
@@ -194,6 +206,6 @@ export class Interpreter {
   }
 }
 
-class ReturnValue {
+export class ReturnValue {
   constructor(public value: any) {}
 }
