@@ -25,6 +25,9 @@ export enum TokenType {
   EQUAL_EQUAL = "EQUAL_EQUAL",
 
   WHILE = "WHILE",
+  FN = "FN",
+  RETURN = "RETURN",
+  COMMA = "COMMA",
 
   EOF = "EOF",
 }

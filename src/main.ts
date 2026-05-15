@@ -4,12 +4,15 @@ import { Interpreter } from "./interpreter";
 import { Environment } from "./environment";
 
 const source = `
-let x = 0
+fn test() {
+  if (1 == 1) {
+    return 5
+  }
 
-while (x < 5) {
-  spilltea(x)
-  x = x + 1
+  spilltea(100)
 }
+
+spilltea(test())
 `;
 
 const lexer = new Lexer(source);

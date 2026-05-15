@@ -8,6 +8,9 @@ export type ASTNode =
   | ComparisonExpression
   | AssignmentExpression
   | WhileStatement
+  | FunctionDeclaration
+  | CallExpression
+  | ReturnStatement
   | Identifier;
 
 export interface Program {
@@ -66,4 +69,22 @@ export interface WhileStatement {
   type: "WhileStatement";
   condition: ASTNode;
   body: ASTNode[];
+}
+
+export interface FunctionDeclaration {
+  type: "FunctionDeclaration";
+  name: string;
+  params: string[];
+  body: ASTNode[];
+}
+
+export interface CallExpression {
+  type: "CallExpression";
+  callee: string;
+  args: ASTNode[];
+}
+
+export interface ReturnStatement {
+  type: "ReturnStatement";
+  value: ASTNode;
 }

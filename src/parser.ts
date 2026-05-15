@@ -49,11 +49,36 @@ export class Parser {
     }
 
     if (token.type === TokenType.IDENTIFIER) {
+      const name = token.value!;
+
       this.advance();
+
+      // function call
+      if (this.currentToken().type === TokenType.LPAREN) {
+        this.advance();
+
+        const args: ASTNode[] = [];
+
+        while (this.currentToken().type !== TokenType.RPAREN) {
+          args.push(this.parseExpression());
+
+          if (this.currentToken().type === TokenType.COMMA) {
+            this.advance();
+          }
+        }
+
+        this.advance(); // skip )
+
+        return {
+          type: "CallExpression",
+          callee: name,
+          args,
+        };
+      }
 
       return {
         type: "Identifier",
-        name: token.value!,
+        name,
       };
     }
 
@@ -217,6 +242,8 @@ export class Parser {
   private parseAssignmentExpression(): ASTNode {
     const name = this.currentToken().value!;
 
+    console.log(name);
+
     this.advance();
 
     if (this.currentToken().type !== TokenType.ASSIGN) {
@@ -272,6 +299,83 @@ export class Parser {
     };
   }
 
+  private parseFunctionDeclaration(): ASTNode {
+    this.advance(); // skip fn
+
+    const nameToken = this.currentToken();
+
+    if (nameToken.type !== TokenType.IDENTIFIER) {
+      throw new Error("Expected function name");
+    }
+
+    const name = nameToken.value!;
+    this.advance();
+
+    if (this.currentToken().type !== TokenType.LPAREN) {
+      throw new Error("Expected (");
+    }
+
+    this.advance();
+
+    const params: string[] = [];
+
+    while (this.currentToken().type !== TokenType.RPAREN) {
+      const param = this.currentToken();
+
+      if (param.type !== TokenType.IDENTIFIER) {
+        throw new Error("Expected parameter name");
+      }
+
+      params.push(param.value!);
+
+      this.advance();
+
+      if (this.currentToken().type === TokenType.COMMA) {
+        this.advance();
+      }
+    }
+
+    this.advance(); // skip )
+
+    if (this.currentToken().type !== TokenType.LBRACE) {
+      throw new Error("Expected {");
+    }
+
+    this.advance();
+
+    const body: ASTNode[] = [];
+
+    while (this.currentToken().type !== TokenType.RBRACE) {
+      body.push(this.parseStatement());
+    }
+
+    this.advance(); // skip }
+
+    return {
+      type: "FunctionDeclaration",
+      name,
+      params,
+      body,
+    };
+  }
+
+  private parseReturnStatement(): ASTNode {
+    this.advance(); // skip return
+
+    return {
+      type: "ReturnStatement",
+      value: this.parseExpression(),
+    };
+  }
+
+  private peek(offset = 1): Token {
+    const token = this.tokens[this.position + offset];
+    if (!token) {
+      throw new Error("Unexpected end of input");
+    }
+    return token;
+  }
+
   private parseStatement(): ASTNode {
     const token = this.currentToken();
 
@@ -288,11 +392,25 @@ export class Parser {
     }
 
     if (token.type === TokenType.IDENTIFIER) {
-      return this.parseAssignmentExpression();
+      // reassignment
+      if (this.peek().type === TokenType.ASSIGN) {
+        return this.parseAssignmentExpression();
+      }
+
+      // expression statement
+      return this.parseExpression();
     }
 
     if (token.type === TokenType.WHILE) {
       return this.parseWhileStatement();
+    }
+
+    if (token.type === TokenType.FN) {
+      return this.parseFunctionDeclaration();
+    }
+
+    if (token.type === TokenType.RETURN) {
+      return this.parseReturnStatement();
     }
 
     throw new Error("Unknown statement");

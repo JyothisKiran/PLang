@@ -8,6 +8,8 @@ import {
   IfStatement,
   AssignmentExpression,
   WhileStatement,
+  FunctionDeclaration,
+  CallExpression,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -89,13 +91,59 @@ export class Interpreter {
     return value;
   }
 
-  private visitWhileStatement(node: WhileStatement) {    
+  private visitWhileStatement(node: WhileStatement) {
     while (this.interpret(node.condition)) {
       for (const statement of node.body) {
         this.interpret(statement);
       }
     }
   }
+
+  private functions = new Map<string, FunctionDeclaration>();
+
+  private visitCallExpression(node: CallExpression) {
+  const fn = this.functions.get(node.callee);
+
+  if (!fn) {
+    throw new Error(`Undefined function: ${node.callee}`);
+  }
+
+  // local scope
+  const localEnv = new Environment(this.env);
+
+  // bind parameters
+  for (let i = 0; i < fn.params.length; i++) {
+    const paramName = fn.params[i];
+    const argNode = node.args[i];
+
+    if (paramName === undefined) {
+      throw new Error("Function parameter name is missing");
+    }
+
+    if (!argNode) {
+      throw new Error(`Missing argument for parameter '${paramName}'`);
+    }
+
+    const argValue = this.interpret(argNode);
+
+    localEnv.declare(paramName, argValue);
+  }
+
+  const previousEnv = this.env;
+  this.env = localEnv;
+
+  try {
+    for (const statement of fn.body) {
+      const result = this.interpret(statement);
+
+      if (result instanceof ReturnValue) {
+        return result.value;
+      }
+    }
+  } finally {
+    this.env = previousEnv;
+  }
+}
 
   public interpret(node: ASTNode): unknown {
     switch (node.type) {
@@ -130,8 +178,22 @@ export class Interpreter {
       case "WhileStatement":
         return this.visitWhileStatement(node);
 
+      case "FunctionDeclaration":
+        this.functions.set(node.name, node);
+        return;
+
+      case "ReturnStatement":
+        return new ReturnValue(this.interpret(node.value));
+
+      case "CallExpression":
+        return this.visitCallExpression(node);
+
       default:
         throw new Error(`Unknown node type`);
     }
   }
+}
+
+class ReturnValue {
+  constructor(public value: any) {}
 }

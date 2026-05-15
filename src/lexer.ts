@@ -66,6 +66,14 @@ export class Lexer {
       return { type: TokenType.WHILE };
     }
 
+    if (result === "fn") {
+      return { type: TokenType.FN };
+    }
+
+    if (result === "return") {
+      return { type: TokenType.RETURN };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,
@@ -132,7 +140,6 @@ export class Lexer {
           tokens.push({ type: TokenType.RPAREN });
           break;
 
-
         case "{":
           tokens.push({ type: TokenType.LBRACE });
           break;
@@ -147,6 +154,10 @@ export class Lexer {
 
         case "<":
           tokens.push({ type: TokenType.LESS });
+          break;
+
+        case ",":
+          tokens.push({ type: TokenType.COMMA });
           break;
 
         default:
