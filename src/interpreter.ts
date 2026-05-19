@@ -11,6 +11,8 @@ import {
   FunctionDeclaration,
   CallExpression,
   IndexExpression,
+  ObjectLiteral,
+  PropertyAccessExpression,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -177,6 +179,26 @@ export class Interpreter {
     return array[index as number];
   }
 
+  private visitObjectLiteral(node: ObjectLiteral) {
+    const obj: Record<string, any> = {};
+
+    for (const prop of node.properties) {
+      obj[prop.key] = this.interpret(prop.value);
+    }
+
+    return obj;
+  }
+
+  private visitPropertyAccessExpression(node: PropertyAccessExpression) {
+    const obj = this.interpret(node.object);
+
+    if (typeof obj !== "object" || obj === null) {
+      throw new Error("Target is not an object");
+    }
+
+    return (obj as Record<string, unknown>)[node.property];
+  }
+
   public interpret(node: ASTNode): unknown {
     switch (node.type) {
       case "Program":
@@ -228,6 +250,12 @@ export class Interpreter {
 
       case "IndexExpression":
         return this.visitIndexExpression(node);
+
+      case "ObjectLiteral":
+        return this.visitObjectLiteral(node);
+
+      case "PropertyAccessExpression":
+        return this.visitPropertyAccessExpression(node);
 
       default:
         throw new Error(`Unknown node type`);

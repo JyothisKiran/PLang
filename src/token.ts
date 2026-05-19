@@ -34,6 +34,9 @@ export enum TokenType {
   LBRACKET = "LBRACKET",
   RBRACKET = "RBRACKET",
 
+  COLON = "COLON",
+  DOT = "DOT",
+
   EOF = "EOF",
 }
 

@@ -24,6 +24,51 @@ export class Parser {
   private parseFactor(): ASTNode {
     const token = this.currentToken();
 
+    if (token.type === TokenType.LBRACE) {
+      this.advance();
+
+      const properties: {
+        key: string;
+        value: ASTNode;
+      }[] = [];
+
+      while (this.currentToken().type !== TokenType.RBRACE) {
+        const keyToken = this.currentToken();
+
+        if (keyToken.type !== TokenType.IDENTIFIER) {
+          throw new Error("Expected property name");
+        }
+
+        const key = keyToken.value!;
+
+        this.advance();
+
+        if (this.currentToken().type !== TokenType.COLON) {
+          throw new Error("Expected :");
+        }
+
+        this.advance();
+
+        const value = this.parseExpression();
+
+        properties.push({
+          key,
+          value,
+        });
+
+        if (this.currentToken().type === TokenType.COMMA) {
+          this.advance();
+        }
+      }
+
+      this.advance(); // skip }
+
+      return {
+        type: "ObjectLiteral",
+        properties,
+      };
+    }
+
     if (token.type === TokenType.STRING) {
       this.advance();
 
@@ -79,6 +124,7 @@ export class Parser {
     }
 
     if (token.type === TokenType.IDENTIFIER) {
+      1;
       const name = token.value!;
 
       this.advance();
@@ -111,22 +157,50 @@ export class Parser {
         name,
       };
 
-      while (this.currentToken().type === TokenType.LBRACKET) {
-        this.advance(); // skip [
+      while (true) {
+        // array indexing
+        if (this.currentToken().type === TokenType.LBRACKET) {
+          this.advance();
 
-        const index = this.parseExpression();
+          const index = this.parseExpression();
 
-        if (this.currentToken().type !== TokenType.RBRACKET) {
-          throw new Error("Expected ]");
+          if (this.currentToken().type !== TokenType.RBRACKET) {
+            throw new Error("Expected ]");
+          }
+
+          this.advance();
+
+          expr = {
+            type: "IndexExpression",
+            array: expr,
+            index,
+          };
+
+          continue;
         }
 
-        this.advance();
+        // property access
+        if (this.currentToken().type === TokenType.DOT) {
+          this.advance();
 
-        expr = {
-          type: "IndexExpression",
-          array: expr,
-          index,
-        };
+          const propertyToken = this.currentToken();
+
+          if (propertyToken.type !== TokenType.IDENTIFIER) {
+            throw new Error("Expected property name");
+          }
+
+          expr = {
+            type: "PropertyAccessExpression",
+            object: expr,
+            property: propertyToken.value!,
+          };
+
+          this.advance();
+
+          continue;
+        }
+
+        break;
       }
 
       return expr;

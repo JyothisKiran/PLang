@@ -4,13 +4,13 @@ import { Interpreter } from "./interpreter";
 import { Environment } from "./environment";
 
 const source = `
-fn double(x) {
-  return x * 2
-}
+let users = [
+  {
+    name: "alex"
+  }
+]
 
-let nums = [double(5), double(10), double(15)]
-
-spilltea(nums)
+spilltea(users[0].name)
 `;
 
 const lexer = new Lexer(source);

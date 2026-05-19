@@ -192,6 +192,14 @@ export class Lexer {
           tokens.push({ type: TokenType.RBRACKET });
           break;
 
+        case ":":
+          tokens.push({ type: TokenType.COLON });
+          break;
+
+        case ".":
+          tokens.push({ type: TokenType.DOT });
+          break;
+
         default:
           throw new Error(`Unexpected character: ${this.currentChar}`);
       }

@@ -14,6 +14,8 @@ export type ASTNode =
   | Identifier
   | StringLiteral
   | ArrayLiteral
+  | ObjectLiteral
+  | PropertyAccessExpression
   | IndexExpression;
 
 export interface Program {
@@ -106,4 +108,18 @@ export interface IndexExpression {
   type: "IndexExpression";
   array: ASTNode;
   index: ASTNode;
+}
+
+export interface ObjectLiteral {
+  type: "ObjectLiteral";
+  properties: {
+    key: string;
+    value: ASTNode;
+  }[];
+}
+
+export interface PropertyAccessExpression {
+  type: "PropertyAccessExpression";
+  object: ASTNode;
+  property: string;
 }
