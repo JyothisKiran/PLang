@@ -184,6 +184,14 @@ export class Lexer {
           tokens.push({ type: TokenType.COMMA });
           break;
 
+        case "[":
+          tokens.push({ type: TokenType.LBRACKET });
+          break;
+
+        case "]":
+          tokens.push({ type: TokenType.RBRACKET });
+          break;
+
         default:
           throw new Error(`Unexpected character: ${this.currentChar}`);
       }

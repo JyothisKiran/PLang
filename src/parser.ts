@@ -33,6 +33,27 @@ export class Parser {
       };
     }
 
+    if (token.type === TokenType.LBRACKET) {
+      this.advance();
+
+      const elements: ASTNode[] = [];
+
+      while (this.currentToken().type !== TokenType.RBRACKET) {
+        elements.push(this.parseExpression());
+
+        if (this.currentToken().type === TokenType.COMMA) {
+          this.advance();
+        }
+      }
+
+      this.advance(); // skip ]
+
+      return {
+        type: "ArrayLiteral",
+        elements,
+      };
+    }
+
     // NUMBER
     if (token.type === TokenType.NUMBER) {
       this.advance();
@@ -85,10 +106,30 @@ export class Parser {
         };
       }
 
-      return {
+      let expr: ASTNode = {
         type: "Identifier",
         name,
       };
+
+      while (this.currentToken().type === TokenType.LBRACKET) {
+        this.advance(); // skip [
+
+        const index = this.parseExpression();
+
+        if (this.currentToken().type !== TokenType.RBRACKET) {
+          throw new Error("Expected ]");
+        }
+
+        this.advance();
+
+        expr = {
+          type: "IndexExpression",
+          array: expr,
+          index,
+        };
+      }
+
+      return expr;
     }
 
     throw new Error(`Unexpected token: ${token.type}`);

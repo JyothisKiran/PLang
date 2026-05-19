@@ -10,6 +10,7 @@ import {
   WhileStatement,
   FunctionDeclaration,
   CallExpression,
+  IndexExpression,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -165,6 +166,17 @@ export class Interpreter {
     }
   }
 
+  private visitIndexExpression(node: IndexExpression) {
+    const array = this.interpret(node.array);
+    const index = this.interpret(node.index);
+
+    if (!Array.isArray(array)) {
+      throw new Error("Target is not an array");
+    }
+
+    return array[index as number];
+  }
+
   public interpret(node: ASTNode): unknown {
     switch (node.type) {
       case "Program":
@@ -210,6 +222,12 @@ export class Interpreter {
 
       case "StringLiteral":
         return node.value;
+
+      case "ArrayLiteral":
+        return node.elements.map((el) => this.interpret(el));
+
+      case "IndexExpression":
+        return this.visitIndexExpression(node);
 
       default:
         throw new Error(`Unknown node type`);

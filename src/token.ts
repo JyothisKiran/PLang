@@ -31,6 +31,9 @@ export enum TokenType {
 
   STRING = "STRING",
 
+  LBRACKET = "LBRACKET",
+  RBRACKET = "RBRACKET",
+
   EOF = "EOF",
 }
 

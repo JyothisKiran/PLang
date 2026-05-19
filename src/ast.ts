@@ -12,7 +12,9 @@ export type ASTNode =
   | CallExpression
   | ReturnStatement
   | Identifier
-  | StringLiteral;
+  | StringLiteral
+  | ArrayLiteral
+  | IndexExpression;
 
 export interface Program {
   type: "Program";
@@ -93,4 +95,15 @@ export interface ReturnStatement {
 export interface StringLiteral {
   type: "StringLiteral";
   value: string;
+}
+
+export interface ArrayLiteral {
+  type: "ArrayLiteral";
+  elements: ASTNode[];
+}
+
+export interface IndexExpression {
+  type: "IndexExpression";
+  array: ASTNode;
+  index: ASTNode;
 }

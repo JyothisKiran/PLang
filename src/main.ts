@@ -4,12 +4,13 @@ import { Interpreter } from "./interpreter";
 import { Environment } from "./environment";
 
 const source = `
-fn greet(name) {
-  return "hello " + name
+fn double(x) {
+  return x * 2
 }
 
+let nums = [double(5), double(10), double(15)]
 
-print(greet("john"))
+spilltea(nums)
 `;
 
 const lexer = new Lexer(source);
