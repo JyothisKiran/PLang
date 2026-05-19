@@ -122,17 +122,23 @@ export class Interpreter {
     }
   }
 
-  private functions = new Map<string, FunctionDeclaration>();
+  // private functions = new Map<string, FunctionDeclaration>();
 
   private visitCallExpression(node: CallExpression) {
-    const fn = this.functions.get(node.callee);
+    // get function from environment
+    const closure = this.env.get(node.callee);
 
-    if (!fn) {
-      throw new Error(`Undefined function: ${node.callee}`);
+    // ensure callable
+    if (!(closure instanceof ClosureValue)) {
+      throw new Error(`${node.callee} is not callable`);
     }
 
-    // local scope
-    const localEnv = new Environment(this.env);
+    const fn = closure.declaration;
+
+    // CRITICAL:
+    // use closure environment
+    // NOT current env
+    const localEnv = new Environment(closure.env);
 
     // bind parameters
     for (let i = 0; i < fn.params.length; i++) {
@@ -140,11 +146,11 @@ export class Interpreter {
       const argNode = node.args[i];
 
       if (paramName === undefined) {
-        throw new Error("Function parameter name is missing");
+        throw new Error("Function parameter missing");
       }
 
       if (!argNode) {
-        throw new Error(`Missing argument for parameter '${paramName}'`);
+        throw new Error(`Missing argument for '${paramName}'`);
       }
 
       const argValue = this.interpret(argNode);
@@ -153,6 +159,7 @@ export class Interpreter {
     }
 
     const previousEnv = this.env;
+
     this.env = localEnv;
 
     try {
@@ -233,7 +240,9 @@ export class Interpreter {
         return this.visitWhileStatement(node);
 
       case "FunctionDeclaration":
-        this.functions.set(node.name, node);
+        const closure = new ClosureValue(node, this.env);
+
+        this.env.declare(node.name, closure);
         return;
 
       case "ReturnStatement":
@@ -265,4 +274,11 @@ export class Interpreter {
 
 export class ReturnValue {
   constructor(public value: any) {}
+}
+
+export class ClosureValue {
+  constructor(
+    public declaration: FunctionDeclaration,
+    public env: Environment,
+  ) {}
 }
