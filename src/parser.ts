@@ -364,25 +364,21 @@ export class Parser {
   }
 
   private parseAssignmentExpression(): ASTNode {
-    const name = this.currentToken().value!;
+    const target = this.parseExpression();
 
-    console.log(name);
+    if (this.currentToken().type === TokenType.ASSIGN) {
+      this.advance();
 
-    this.advance();
+      const value = this.parseExpression();
 
-    if (this.currentToken().type !== TokenType.ASSIGN) {
-      throw new Error("Expected =");
+      return {
+        type: "AssignmentExpression",
+        target,
+        value,
+      };
     }
 
-    this.advance(); // skip '='
-
-    const value = this.parseExpression();
-
-    return {
-      type: "AssignmentExpression",
-      name,
-      value,
-    };
+    return target;
   }
 
   private parseWhileStatement(): ASTNode {
@@ -516,13 +512,7 @@ export class Parser {
     }
 
     if (token.type === TokenType.IDENTIFIER) {
-      // reassignment
-      if (this.peek().type === TokenType.ASSIGN) {
-        return this.parseAssignmentExpression();
-      }
-
-      // expression statement
-      return this.parseExpression();
+      return this.parseAssignmentExpression();
     }
 
     if (token.type === TokenType.WHILE) {

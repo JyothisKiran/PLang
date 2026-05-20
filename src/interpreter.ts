@@ -102,13 +102,81 @@ export class Interpreter {
     }
   }
 
-  private visitAssignmentExpression(node: AssignmentExpression) {
-    const value = this.interpret(node.value);
+  private visitAssignmentExpression(
+  node: AssignmentExpression
+) {
 
-    this.env.assign(node.name, value);
+  const value =
+    this.interpret(node.value);
+
+  const target = node.target;
+
+  // variable assignment
+  if (target.type === "Identifier") {
+
+    this.env.assign(
+      target.name,
+      value
+    );
 
     return value;
   }
+
+  // object property assignment
+  if (
+    target.type ===
+    "PropertyAccessExpression"
+  ) {
+
+    const obj = this.interpret(
+      target.object
+    );
+
+    if (
+      typeof obj !== "object" ||
+      obj === null
+    ) {
+      throw new Error(
+        "Target is not an object"
+      );
+    }
+
+    (
+      obj as Record<string, unknown>
+    )[target.property] = value;
+
+    return value;
+  }
+
+  // array index assignment
+  if (
+    target.type ===
+    "IndexExpression"
+  ) {
+
+    const array = this.interpret(
+      target.array
+    );
+
+    const index = this.interpret(
+      target.index
+    );
+
+    if (!Array.isArray(array)) {
+      throw new Error(
+        "Target is not an array"
+      );
+    }
+
+    array[index as number] = value;
+
+    return value;
+  }
+
+  throw new Error(
+    "Invalid assignment target"
+  );
+}
 
   private visitWhileStatement(node: WhileStatement) {
     while (this.interpret(node.condition)) {

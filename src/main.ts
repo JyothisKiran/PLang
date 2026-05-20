@@ -4,23 +4,13 @@ import { Interpreter } from "./interpreter";
 import { Environment } from "./environment";
 
 const source = `
-fn makeCounter() {
-
-  let count = 0
-
-  fn increment() {
-    count = count + 1
-    return count
-  }
-
-  return increment
+let user = {
+  scores: [10, 20]
 }
 
-let counter = makeCounter()
+user.scores[1] = 999
 
-spilltea(counter())
-spilltea(counter())
-spilltea(counter())
+spilltea(user.scores[1])
 `;
 
 const lexer = new Lexer(source);

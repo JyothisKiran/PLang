@@ -66,7 +66,9 @@ export interface ComparisonExpression {
 
 export interface AssignmentExpression {
   type: "AssignmentExpression";
-  name: string;
+
+  target: ASTNode;
+
   value: ASTNode;
 }
 
