@@ -37,6 +37,8 @@ export enum TokenType {
   COLON = "COLON",
   DOT = "DOT",
 
+  THIS = "THIS",
+
   EOF = "EOF",
 }
 

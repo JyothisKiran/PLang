@@ -13,6 +13,7 @@ import {
   IndexExpression,
   ObjectLiteral,
   PropertyAccessExpression,
+  MethodCallExpression,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -102,81 +103,48 @@ export class Interpreter {
     }
   }
 
-  private visitAssignmentExpression(
-  node: AssignmentExpression
-) {
+  private visitAssignmentExpression(node: AssignmentExpression) {
+    const value = this.interpret(node.value);
 
-  const value =
-    this.interpret(node.value);
+    const target = node.target;
 
-  const target = node.target;
+    // variable assignment
+    if (target.type === "Identifier") {
+      this.env.assign(target.name, value);
 
-  // variable assignment
-  if (target.type === "Identifier") {
-
-    this.env.assign(
-      target.name,
-      value
-    );
-
-    return value;
-  }
-
-  // object property assignment
-  if (
-    target.type ===
-    "PropertyAccessExpression"
-  ) {
-
-    const obj = this.interpret(
-      target.object
-    );
-
-    if (
-      typeof obj !== "object" ||
-      obj === null
-    ) {
-      throw new Error(
-        "Target is not an object"
-      );
+      return value;
     }
 
-    (
-      obj as Record<string, unknown>
-    )[target.property] = value;
+    // object property assignment
+    if (target.type === "PropertyAccessExpression") {
+      const obj = this.interpret(target.object);
 
-    return value;
-  }
+      if (typeof obj !== "object" || obj === null) {
+        throw new Error("Target is not an object");
+      }
 
-  // array index assignment
-  if (
-    target.type ===
-    "IndexExpression"
-  ) {
+      (obj as Record<string, unknown>)[target.property] = value;
 
-    const array = this.interpret(
-      target.array
-    );
-
-    const index = this.interpret(
-      target.index
-    );
-
-    if (!Array.isArray(array)) {
-      throw new Error(
-        "Target is not an array"
-      );
+      return value;
     }
 
-    array[index as number] = value;
+    // array index assignment
+    if (target.type === "IndexExpression") {
+      const array = this.interpret(target.array);
 
-    return value;
+      const index = this.interpret(target.index);
+
+      if (!Array.isArray(array)) {
+        throw new Error("Target is not an array");
+      }
+
+      array[index as number] = value;
+
+      return value;
+    }
+
+    throw new Error("Invalid assignment target");
   }
-
-  throw new Error(
-    "Invalid assignment target"
-  );
-}
 
   private visitWhileStatement(node: WhileStatement) {
     while (this.interpret(node.condition)) {
@@ -274,6 +242,59 @@ export class Interpreter {
     return (obj as Record<string, unknown>)[node.property];
   }
 
+  private visitMethodCallExpression(node: MethodCallExpression) {
+    const obj = this.interpret(node.object);
+
+    if (typeof obj !== "object" || obj === null) {
+      throw new Error("Target is not an object");
+    }
+
+    const method = (obj as Record<string, unknown>)[node.method];
+
+    if (!(method instanceof ClosureValue)) {
+      throw new Error(`${node.method} is not a method`);
+    }
+
+    const fn = method.declaration;
+
+    // method environment
+    const localEnv = new Environment(method.env);
+
+    // THIS BINDING
+    localEnv.declare("this", obj);
+
+    // bind parameters
+    for (let i = 0; i < fn.params.length; i++) {
+      const paramName = fn.params[i];
+      const argNode = node.args[i];
+
+      if (!argNode) {
+        throw new Error("Missing argument");
+      }
+      if (!paramName) {
+        throw new Error("Missing parameter name");
+      }
+
+      localEnv.declare(paramName, this.interpret(argNode));
+    }
+
+    const previousEnv = this.env;
+
+    this.env = localEnv;
+
+    try {
+      for (const stmt of fn.body) {
+        const result = this.interpret(stmt);
+
+        if (result instanceof ReturnValue) {
+          return result.value;
+        }
+      }
+    } finally {
+      this.env = previousEnv;
+    }
+  }
+
   public interpret(node: ASTNode): unknown {
     switch (node.type) {
       case "Program":
@@ -333,6 +354,23 @@ export class Interpreter {
 
       case "PropertyAccessExpression":
         return this.visitPropertyAccessExpression(node);
+
+      case "ThisExpression":
+        return this.env.get("this");
+
+      case "FunctionExpression":
+        return new ClosureValue(
+          {
+            type: "FunctionDeclaration",
+            name: "__anonymous__",
+            params: node.params,
+            body: node.body,
+          },
+          this.env,
+        );
+
+      case "MethodCallExpression":
+        return this.visitMethodCallExpression(node);
 
       default:
         throw new Error(`Unknown node type`);

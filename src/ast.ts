@@ -16,6 +16,9 @@ export type ASTNode =
   | ArrayLiteral
   | ObjectLiteral
   | PropertyAccessExpression
+  | ThisExpression
+  | FunctionExpression
+  | MethodCallExpression
   | IndexExpression;
 
 export interface Program {
@@ -124,4 +127,26 @@ export interface PropertyAccessExpression {
   type: "PropertyAccessExpression";
   object: ASTNode;
   property: string;
+}
+
+export interface ThisExpression {
+  type: "ThisExpression";
+}
+
+export interface FunctionExpression {
+  type: "FunctionExpression";
+
+  params: string[];
+
+  body: ASTNode[];
+}
+
+export interface MethodCallExpression {
+  type: "MethodCallExpression";
+
+  object: ASTNode;
+
+  method: string;
+
+  args: ASTNode[];
 }

@@ -99,6 +99,40 @@ export class Parser {
       };
     }
 
+    if (token.type === TokenType.THIS) {
+      this.advance();
+
+      let expr: ASTNode = {
+        type: "ThisExpression",
+      };
+
+      while (true) {
+        if (this.currentToken().type === TokenType.DOT) {
+          this.advance();
+
+          const property = this.currentToken();
+
+          if (property.type !== TokenType.IDENTIFIER) {
+            throw new Error("Expected property name");
+          }
+
+          expr = {
+            type: "PropertyAccessExpression",
+            object: expr,
+            property: property.value!,
+          };
+
+          this.advance();
+
+          continue;
+        }
+
+        break;
+      }
+
+      return expr;
+    }
+
     // NUMBER
     if (token.type === TokenType.NUMBER) {
       this.advance();
@@ -189,13 +223,42 @@ export class Parser {
             throw new Error("Expected property name");
           }
 
+          const property = propertyToken.value!;
+
+          this.advance();
+
+          // METHOD CALL
+          if (this.currentToken().type === TokenType.LPAREN) {
+            this.advance();
+
+            const args: ASTNode[] = [];
+
+            while (this.currentToken().type !== TokenType.RPAREN) {
+              args.push(this.parseExpression());
+
+              if (this.currentToken().type === TokenType.COMMA) {
+                this.advance();
+              }
+            }
+
+            this.advance();
+
+            expr = {
+              type: "MethodCallExpression",
+              object: expr,
+              method: property,
+              args,
+            };
+
+            continue;
+          }
+
+          // NORMAL PROPERTY ACCESS
           expr = {
             type: "PropertyAccessExpression",
             object: expr,
-            property: propertyToken.value!,
+            property,
           };
-
-          this.advance();
 
           continue;
         }
@@ -204,6 +267,10 @@ export class Parser {
       }
 
       return expr;
+    }
+
+    if (token.type === TokenType.FN) {
+      return this.parseFunctionExpression();
     }
 
     throw new Error(`Unexpected token: ${token.type}`);
@@ -511,7 +578,7 @@ export class Parser {
       return this.parseIfStatement();
     }
 
-    if (token.type === TokenType.IDENTIFIER) {
+    if (token.type === TokenType.IDENTIFIER || token.type === TokenType.THIS) {
       return this.parseAssignmentExpression();
     }
 
@@ -528,6 +595,61 @@ export class Parser {
     }
 
     throw new Error("Unknown statement");
+  }
+
+  private parseFunctionExpression(): ASTNode {
+    this.advance(); // skip fn
+
+    if (this.currentToken().type !== TokenType.LPAREN) {
+      throw new Error("Expected (");
+    }
+
+    this.advance();
+
+    const params: string[] = [];
+
+    if (this.currentToken().type !== TokenType.RPAREN) {
+      while (true) {
+        const token = this.currentToken();
+
+        if (token.type !== TokenType.IDENTIFIER) {
+          throw new Error("Expected parameter name");
+        }
+
+        params.push(token.value!);
+
+        this.advance();
+
+        if (this.currentToken().type === TokenType.COMMA) {
+          this.advance();
+          continue;
+        }
+
+        break;
+      }
+    }
+
+    this.advance(); // )
+
+    if (this.currentToken().type !== TokenType.LBRACE) {
+      throw new Error("Expected {");
+    }
+
+    this.advance();
+
+    const body: ASTNode[] = [];
+
+    while (this.currentToken().type !== TokenType.RBRACE) {
+      body.push(this.parseStatement());
+    }
+
+    this.advance(); // }
+
+    return {
+      type: "FunctionExpression",
+      params,
+      body,
+    };
   }
 
   public parseProgram(): ASTNode {

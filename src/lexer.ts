@@ -92,6 +92,10 @@ export class Lexer {
       return { type: TokenType.RETURN };
     }
 
+    if (result === "this") {
+      return { type: TokenType.THIS };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,
