@@ -158,8 +158,6 @@ export class Interpreter {
     }
   }
 
-  // private functions = new Map<string, FunctionDeclaration>();
-
   private visitCallExpression(node: CallExpression) {
     const callable = this.env.get(node.callee);
 
@@ -232,13 +230,26 @@ export class Interpreter {
   }
 
   private visitPropertyAccessExpression(node: PropertyAccessExpression) {
-    const obj = this.interpret(node.object);
+    let obj = this.interpret(node.object);
 
     if (typeof obj !== "object" || obj === null) {
       throw new Error("Target is not an object");
     }
 
-    return (obj as Record<string, unknown>)[node.property];
+    const property = node.property;
+
+    // prototype chain lookup
+    while (obj) {
+      const record = obj as Record<string, unknown>;
+
+      if (property in record) {
+        return record[property];
+      }
+
+      obj = record["__proto__"];
+    }
+
+    throw new Error(`Property '${property}' not found`);
   }
 
   private visitMethodCallExpression(node: MethodCallExpression) {
@@ -248,7 +259,21 @@ export class Interpreter {
       throw new Error("Target is not an object");
     }
 
-    const method = (obj as Record<string, unknown>)[node.method];
+    let current: Record<string, unknown> | null = obj;
+
+    let method: unknown;
+
+    while (current) {
+      const record = current as Record<string, any>;
+
+      if (node.method in record) {
+        method = record[node.method];
+
+        break;
+      }
+
+      current = record["__proto__"];
+    }
 
     if (!(method instanceof ClosureValue)) {
       throw new Error(`${node.method} is not a method`);
@@ -294,7 +319,7 @@ export class Interpreter {
     }
   }
 
-  public interpret(node: ASTNode): unknown {
+  public interpret(node: ASTNode): any {
     switch (node.type) {
       case "Program":
         return this.visitProgram(node);

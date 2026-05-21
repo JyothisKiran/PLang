@@ -61,7 +61,7 @@ export class Lexer {
   private identifier(): Token {
     let result = "";
 
-    while (this.currentChar && /[a-zA-Z]/.test(this.currentChar)) {
+    while (this.currentChar && /[a-zA-Z_]/.test(this.currentChar)) {
       result += this.currentChar;
       this.advance();
     }
@@ -125,7 +125,7 @@ export class Lexer {
       }
 
       // Identifiers
-      if (/[a-zA-Z]/.test(this.currentChar)) {
+      if (/[a-zA-Z_]/.test(this.currentChar)) {
         tokens.push(this.identifier());
         continue;
       }

@@ -4,9 +4,18 @@ import { Interpreter, NativeFunctionValue } from "./interpreter";
 import { Environment } from "./environment";
 
 const source = `
-spilltea(type(123))
-spilltea(type("hi"))
-spilltea(type([1,2]))
+let animal = {
+  speak: fn() {
+    spilltea(this.name)
+  }
+}
+
+let dog = {
+  __proto__: animal,
+  name: "rex"
+}
+
+dog.speak()
 `;
 
 const lexer = new Lexer(source);
