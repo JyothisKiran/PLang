@@ -161,54 +161,53 @@ export class Interpreter {
   // private functions = new Map<string, FunctionDeclaration>();
 
   private visitCallExpression(node: CallExpression) {
-    // get function from environment
-    const closure = this.env.get(node.callee);
+    const callable = this.env.get(node.callee);
 
-    // ensure callable
-    if (!(closure instanceof ClosureValue)) {
-      throw new Error(`${node.callee} is not callable`);
+    // evaluate arguments
+    const args = node.args.map((arg) => this.interpret(arg));
+
+    // NATIVE FUNCTION
+    if (callable instanceof NativeFunctionValue) {
+      return callable.call(args);
     }
 
-    const fn = closure.declaration;
+    // USER FUNCTION
+    if (callable instanceof ClosureValue) {
+      const fn = callable.declaration;
 
-    // CRITICAL:
-    // use closure environment
-    // NOT current env
-    const localEnv = new Environment(closure.env);
+      const localEnv = new Environment(callable.env);
 
-    // bind parameters
-    for (let i = 0; i < fn.params.length; i++) {
-      const paramName = fn.params[i];
-      const argNode = node.args[i];
+      // bind params
+      for (let i = 0; i < fn.params.length; i++) {
+        const param = fn.params[i];
 
-      if (paramName === undefined) {
-        throw new Error("Function parameter missing");
-      }
-
-      if (!argNode) {
-        throw new Error(`Missing argument for '${paramName}'`);
-      }
-
-      const argValue = this.interpret(argNode);
-
-      localEnv.declare(paramName, argValue);
-    }
-
-    const previousEnv = this.env;
-
-    this.env = localEnv;
-
-    try {
-      for (const statement of fn.body) {
-        const result = this.interpret(statement);
-
-        if (result instanceof ReturnValue) {
-          return result.value;
+        if (!param) {
+          throw new Error("Missing parameter name");
         }
+
+        localEnv.declare(param, args[i]);
       }
-    } finally {
-      this.env = previousEnv;
+
+      const previousEnv = this.env;
+
+      this.env = localEnv;
+
+      try {
+        for (const statement of fn.body) {
+          const result = this.interpret(statement);
+
+          if (result instanceof ReturnValue) {
+            return result.value;
+          }
+        }
+      } finally {
+        this.env = previousEnv;
+      }
+
+      return null;
     }
+
+    throw new Error(`${node.callee} is not callable`);
   }
 
   private visitIndexExpression(node: IndexExpression) {
@@ -387,4 +386,8 @@ export class ClosureValue {
     public declaration: FunctionDeclaration,
     public env: Environment,
   ) {}
+}
+
+export class NativeFunctionValue {
+  constructor(public call: (args: unknown[]) => unknown) {}
 }

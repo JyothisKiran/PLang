@@ -1,22 +1,12 @@
 import { Lexer } from "./lexer";
 import { Parser } from "./parser";
-import { Interpreter } from "./interpreter";
+import { Interpreter, NativeFunctionValue } from "./interpreter";
 import { Environment } from "./environment";
 
 const source = `
-let counter = {
-
-  count: 0,
-
-  inc: fn() {
-    this.count = this.count + 1
-  }
-}
-
-counter.inc()
-counter.inc()
-
-spilltea(counter.count)
+spilltea(type(123))
+spilltea(type("hi"))
+spilltea(type([1,2]))
 `;
 
 const lexer = new Lexer(source);
@@ -31,6 +21,82 @@ const ast = parser.parseProgram();
 console.log(JSON.stringify(ast, null, 2));
 
 const env = new Environment();
+env.declare(
+  "len",
+
+  new NativeFunctionValue(
+    (args) => {
+
+      const value = args[0];
+
+      if (
+        typeof value === "string" ||
+        Array.isArray(value)
+      ) {
+        return value.length;
+      }
+
+      throw new Error(
+        "len() only supports arrays and strings"
+      );
+    }
+  )
+);
+env.declare(
+  "push",
+
+  new NativeFunctionValue(
+    (args) => {
+
+      const array = args[0];
+      const value = args[1];
+
+      if (!Array.isArray(array)) {
+        throw new Error(
+          "push() expects array"
+        );
+      }
+
+      array.push(value);
+
+      return null;
+    }
+  )
+);
+env.declare(
+  "pop",
+
+  new NativeFunctionValue(
+    (args) => {
+
+      const array = args[0];
+
+      if (!Array.isArray(array)) {
+        throw new Error(
+          "pop() expects array"
+        );
+      }
+
+      return array.pop();
+    }
+  )
+);
+env.declare(
+  "type",
+
+  new NativeFunctionValue(
+    (args) => {
+
+      const value = args[0];
+
+      if (Array.isArray(value)) {
+        return "array";
+      }
+
+      return typeof value;
+    }
+  )
+);
 const interpreter = new Interpreter(env);
 
 interpreter.interpret(ast);
