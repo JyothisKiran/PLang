@@ -273,6 +273,32 @@ export class Parser {
       return this.parseFunctionExpression();
     }
 
+    if (token.type === TokenType.TRUE) {
+      this.advance();
+
+      return {
+        type: "BooleanLiteral",
+        value: true,
+      };
+    }
+
+    if (token.type === TokenType.FALSE) {
+      this.advance();
+
+      return {
+        type: "BooleanLiteral",
+        value: false,
+      };
+    }
+
+    if (token.type === TokenType.NULL) {
+      this.advance();
+
+      return {
+        type: "NullLiteral",
+      };
+    }
+
     throw new Error(`Unexpected token: ${token.type}`);
   }
 

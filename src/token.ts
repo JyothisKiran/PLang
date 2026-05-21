@@ -39,6 +39,10 @@ export enum TokenType {
 
   THIS = "THIS",
 
+  TRUE = "TRUE",
+  FALSE = "FALSE",
+  NULL = "NULL",
+
   EOF = "EOF",
 }
 

@@ -96,6 +96,18 @@ export class Lexer {
       return { type: TokenType.THIS };
     }
 
+    if (result === "true") {
+      return { type: TokenType.TRUE };
+    }
+
+    if (result === "false") {
+      return { type: TokenType.FALSE };
+    }
+
+    if (result === "null") {
+      return { type: TokenType.NULL };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,

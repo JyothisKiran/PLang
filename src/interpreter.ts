@@ -396,6 +396,12 @@ export class Interpreter {
       case "MethodCallExpression":
         return this.visitMethodCallExpression(node);
 
+      case "BooleanLiteral":
+        return node.value;
+
+      case "NullLiteral":
+        return null;
+
       default:
         throw new Error(`Unknown node type`);
     }

@@ -19,6 +19,8 @@ export type ASTNode =
   | ThisExpression
   | FunctionExpression
   | MethodCallExpression
+  | BooleanLiteral
+  | NullLiteral
   | IndexExpression;
 
 export interface Program {
@@ -149,4 +151,14 @@ export interface MethodCallExpression {
   method: string;
 
   args: ASTNode[];
+}
+
+export interface BooleanLiteral {
+  type: "BooleanLiteral";
+
+  value: boolean;
+}
+
+export interface NullLiteral {
+  type: "NullLiteral";
 }

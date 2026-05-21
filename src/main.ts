@@ -4,18 +4,19 @@ import { Interpreter, NativeFunctionValue } from "./interpreter";
 import { Environment } from "./environment";
 
 const source = `
+let living = {
+  alive: true
+}
+
 let animal = {
-  speak: fn() {
-    spilltea(this.name)
-  }
+  __proto__: living
 }
 
 let dog = {
-  __proto__: animal,
-  name: "rex"
+  __proto__: animal
 }
 
-dog.speak()
+spilltea(dog.alive)
 `;
 
 const lexer = new Lexer(source);
