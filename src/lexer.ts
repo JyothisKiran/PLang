@@ -20,6 +20,13 @@ export class Lexer {
     }
   }
 
+  private peek(): string {
+
+  return this.input[
+    this.position + 1
+  ] ?? "";
+}
+
   private skipWhitespace() {
     while (this.currentChar && /\s/.test(this.currentChar)) {
       this.advance();
@@ -121,6 +128,38 @@ export class Lexer {
       // Skip spaces
       if (/\s/.test(this.currentChar)) {
         this.skipWhitespace();
+        continue;
+      }
+
+      if (this.currentChar === "&" && this.peek() === "&") {
+        tokens.push({
+          type: TokenType.AND,
+        });
+
+        this.advance();
+        this.advance();
+
+        continue;
+      }
+
+      if (this.currentChar === "|" && this.peek() === "|") {
+        tokens.push({
+          type: TokenType.OR,
+        });
+
+        this.advance();
+        this.advance();
+
+        continue;
+      }
+
+      if (this.currentChar === "!") {
+        tokens.push({
+          type: TokenType.NOT,
+        });
+
+        this.advance();
+
         continue;
       }
 

@@ -273,6 +273,18 @@ export class Parser {
       return this.parseFunctionExpression();
     }
 
+    if (token.type === TokenType.NOT) {
+      this.advance();
+
+      return {
+        type: "UnaryExpression",
+
+        operator: "!",
+
+        argument: this.parseFactor(),
+      };
+    }
+
     if (token.type === TokenType.TRUE) {
       this.advance();
 
@@ -323,7 +335,7 @@ export class Parser {
     return node;
   }
 
-  private parseExpression(): ASTNode {
+  private parseAdditiveExpression(): ASTNode {
     let node = this.parseTerm();
 
     while (
@@ -389,7 +401,7 @@ export class Parser {
   }
 
   private parseComparisonExpression(): ASTNode {
-    let left = this.parseExpression();
+    let left = this.parseAdditiveExpression();
 
     const token = this.currentToken();
 
@@ -400,7 +412,7 @@ export class Parser {
     ) {
       this.advance();
 
-      const right = this.parseExpression();
+      const right = this.parseAdditiveExpression();
 
       return {
         type: "ComparisonExpression",
@@ -427,7 +439,7 @@ export class Parser {
 
     this.advance(); // skip (
 
-    const condition = this.parseComparisonExpression();
+    const condition = this.parseExpression();
 
     if (this.currentToken().type !== TokenType.RPAREN) {
       throw new Error("Expected ) after condition");
@@ -483,7 +495,7 @@ export class Parser {
 
     this.advance();
 
-    const condition = this.parseComparisonExpression();
+    const condition = this.parseExpression();
 
     if (this.currentToken().type !== TokenType.RPAREN) {
       throw new Error("Expected )");
@@ -620,7 +632,16 @@ export class Parser {
       return this.parseReturnStatement();
     }
 
-    throw new Error("Unknown statement");
+    return this.parseExpressionStatement();
+  }
+
+  private parseExpressionStatement(): ASTNode {
+    const expr = this.parseExpression();
+
+    return {
+      type: "ExpressionStatement",
+      expression: expr,
+    };
   }
 
   private parseFunctionExpression(): ASTNode {
@@ -676,6 +697,37 @@ export class Parser {
       params,
       body,
     };
+  }
+
+  private parseLogicalExpression(): ASTNode {
+    let left = this.parseComparisonExpression();
+
+    while (
+      this.currentToken().type === TokenType.AND ||
+      this.currentToken().type === TokenType.OR
+    ) {
+      const operatorToken = this.currentToken();
+
+      this.advance();
+
+      const right = this.parseComparisonExpression();
+
+      left = {
+        type: "LogicalExpression",
+
+        left,
+
+        operator: operatorToken.type === TokenType.AND ? "&&" : "||",
+
+        right,
+      };
+    }
+
+    return left;
+  }
+
+  private parseExpression(): ASTNode {
+    return this.parseLogicalExpression();
   }
 
   public parseProgram(): ASTNode {

@@ -14,6 +14,8 @@ import {
   ObjectLiteral,
   PropertyAccessExpression,
   MethodCallExpression,
+  LogicalExpression,
+  UnaryExpression,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -27,6 +29,48 @@ export class Interpreter {
       if (result instanceof ReturnValue) {
         return result;
       }
+    }
+  }
+
+  private isTruthy(value: unknown): boolean {
+    return !!value;
+  }
+
+  private visitLogicalExpression(node: LogicalExpression) {
+    // SHORT CIRCUIT
+
+    if (node.operator === "&&") {
+      const left = this.interpret(node.left);
+
+      if (!this.isTruthy(left)) {
+        return left;
+      }
+
+      return this.interpret(node.right);
+    }
+
+    if (node.operator === "||") {
+      const left = this.interpret(node.left);
+
+      if (this.isTruthy(left)) {
+        return left;
+      }
+
+      return this.interpret(node.right);
+    }
+
+    throw new Error("Unknown logical operator");
+  }
+
+  private visitUnaryExpression(node: UnaryExpression) {
+    const value = this.interpret(node.argument);
+
+    switch (node.operator) {
+      case "!":
+        return !this.isTruthy(value);
+
+      default:
+        throw new Error("Unknown unary operator");
     }
   }
 
@@ -401,6 +445,15 @@ export class Interpreter {
 
       case "NullLiteral":
         return null;
+
+      case "LogicalExpression":
+        return this.visitLogicalExpression(node);
+
+      case "UnaryExpression":
+        return this.visitUnaryExpression(node);
+
+      case "ExpressionStatement":
+        return this.interpret(node.expression);
 
       default:
         throw new Error(`Unknown node type`);

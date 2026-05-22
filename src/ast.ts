@@ -4,6 +4,7 @@ export type ASTNode =
   | BinaryExpression
   | NumberLiteral
   | VariableDeclaration
+  | ExpressionStatement
   | IfStatement
   | ComparisonExpression
   | AssignmentExpression
@@ -21,6 +22,8 @@ export type ASTNode =
   | MethodCallExpression
   | BooleanLiteral
   | NullLiteral
+  | LogicalExpression
+  | UnaryExpression
   | IndexExpression;
 
 export interface Program {
@@ -161,4 +164,29 @@ export interface BooleanLiteral {
 
 export interface NullLiteral {
   type: "NullLiteral";
+}
+
+export interface LogicalExpression {
+
+  type: "LogicalExpression";
+
+  left: ASTNode;
+
+  operator: "&&" | "||";
+
+  right: ASTNode;
+}
+
+export interface UnaryExpression {
+
+  type: "UnaryExpression";
+
+  operator: "!";
+
+  argument: ASTNode;
+}
+
+export interface ExpressionStatement {
+  type: "ExpressionStatement";
+  expression: ASTNode;
 }

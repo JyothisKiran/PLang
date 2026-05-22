@@ -43,6 +43,10 @@ export enum TokenType {
   FALSE = "FALSE",
   NULL = "NULL",
 
+  AND = "AND",
+  OR = "OR",
+  NOT = "NOT",
+
   EOF = "EOF",
 }
 
