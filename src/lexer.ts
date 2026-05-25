@@ -115,6 +115,14 @@ export class Lexer {
       return { type: TokenType.NULL };
     }
 
+    if (result === "class") {
+      return { type: TokenType.CLASS };
+    }
+
+    if (result === "new") {
+      return { type: TokenType.NEW };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,

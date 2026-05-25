@@ -24,6 +24,8 @@ export type ASTNode =
   | NullLiteral
   | LogicalExpression
   | UnaryExpression
+  | ClassDeclaration
+  | NewExpression
   | IndexExpression;
 
 export interface Program {
@@ -189,4 +191,22 @@ export interface UnaryExpression {
 export interface ExpressionStatement {
   type: "ExpressionStatement";
   expression: ASTNode;
+}
+
+export interface ClassDeclaration {
+
+  type: "ClassDeclaration";
+
+  name: string;
+
+  methods: FunctionDeclaration[];
+}
+
+export interface NewExpression {
+
+  type: "NewExpression";
+
+  className: string;
+
+  args: ASTNode[];
 }

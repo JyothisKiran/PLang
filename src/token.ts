@@ -47,6 +47,9 @@ export enum TokenType {
   OR = "OR",
   NOT = "NOT",
 
+  CLASS = "CLASS",
+  NEW = "NEW",
+
   EOF = "EOF",
 }
 

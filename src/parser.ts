@@ -1,5 +1,5 @@
 import { Token, TokenType } from "./token";
-import { ASTNode } from "./ast";
+import { ASTNode, FunctionDeclaration } from "./ast";
 
 export class Parser {
   private tokens: Token[];
@@ -308,6 +308,46 @@ export class Parser {
 
       return {
         type: "NullLiteral",
+      };
+    }
+
+    if (token.type === TokenType.NEW) {
+      this.advance();
+
+      const classToken = this.currentToken();
+
+      if (classToken.type !== TokenType.IDENTIFIER) {
+        throw new Error("Expected class name");
+      }
+
+      const className = classToken.value!;
+
+      this.advance();
+
+      if (this.currentToken().type !== TokenType.LPAREN) {
+        throw new Error("Expected (");
+      }
+
+      this.advance();
+
+      const args: ASTNode[] = [];
+
+      while (this.currentToken().type !== TokenType.RPAREN) {
+        args.push(this.parseExpression());
+
+        if (this.currentToken().type === TokenType.COMMA) {
+          this.advance();
+        }
+      }
+
+      this.advance();
+
+      return {
+        type: "NewExpression",
+
+        className,
+
+        args,
       };
     }
 
@@ -632,6 +672,10 @@ export class Parser {
       return this.parseReturnStatement();
     }
 
+    if (token.type === TokenType.CLASS) {
+      return this.parseClassDeclaration();
+    }
+
     return this.parseExpressionStatement();
   }
 
@@ -724,6 +768,44 @@ export class Parser {
     }
 
     return left;
+  }
+
+  private parseClassDeclaration(): ASTNode {
+    this.advance(); // skip class
+
+    const nameToken = this.currentToken();
+
+    if (nameToken.type !== TokenType.IDENTIFIER) {
+      throw new Error("Expected class name");
+    }
+
+    const name = nameToken.value!;
+
+    this.advance();
+
+    if (this.currentToken().type !== TokenType.LBRACE) {
+      throw new Error("Expected {");
+    }
+
+    this.advance();
+
+    const methods: FunctionDeclaration[] = [];
+
+    while (this.currentToken().type !== TokenType.RBRACE) {
+      const method = this.parseFunctionDeclaration();
+
+      methods.push(method as FunctionDeclaration);
+    }
+
+    this.advance(); // skip }
+
+    return {
+      type: "ClassDeclaration",
+
+      name,
+
+      methods,
+    };
   }
 
   private parseExpression(): ASTNode {

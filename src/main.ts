@@ -211,7 +211,22 @@ spilltea(false && explode())
 spilltea("===== DONE =====")
 `;
 
-const lexer = new Lexer(source);
+const s1 = `class Person {
+
+  fn init(name) {
+    this.name = name
+  }
+
+  fn greet() {
+    spilltea(this.name)
+  }
+}
+
+let p = new Person("alex")
+
+p.greet()`
+
+const lexer = new Lexer(s1);
 const tokens = lexer.tokenize();
 
 console.log(tokens);

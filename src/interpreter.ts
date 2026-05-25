@@ -16,11 +16,15 @@ import {
   MethodCallExpression,
   LogicalExpression,
   UnaryExpression,
+  ClassDeclaration,
+  NewExpression,
 } from "./ast";
 import { Environment } from "./environment";
 
 export class Interpreter {
   constructor(private env: Environment) {}
+
+  private classes = new Map<string, ClassDeclaration>();
 
   private visitProgram(node: Program) {
     for (const statement of node.body) {
@@ -363,6 +367,59 @@ export class Interpreter {
     }
   }
 
+  private visitNewExpression(node: NewExpression) {
+    const classDecl = this.classes.get(node.className);
+
+    if (!classDecl) {
+      throw new Error(`Undefined class: ${node.className}`);
+    }
+
+    // object instance
+    const instance: Record<string, unknown> = {};
+
+    // attach methods
+    for (const method of classDecl.methods) {
+      instance[method.name] = new ClosureValue(method, this.env);
+    }
+
+    // constructor
+    const init = instance["init"];
+
+    if (init instanceof ClosureValue) {
+      const fn = init.declaration;
+
+      const localEnv = new Environment(init.env);
+
+      localEnv.declare("this", instance);
+
+      for (let i = 0; i < fn.params.length; i++) {
+        const param = fn.params[i];
+
+        const arg = node.args[i];
+
+        if (!param || !arg) {
+          continue;
+        }
+
+        localEnv.declare(param, this.interpret(arg));
+      }
+
+      const previous = this.env;
+
+      this.env = localEnv;
+
+      try {
+        for (const stmt of fn.body) {
+          this.interpret(stmt);
+        }
+      } finally {
+        this.env = previous;
+      }
+    }
+
+    return instance;
+  }
+
   public interpret(node: ASTNode): any {
     switch (node.type) {
       case "Program":
@@ -454,6 +511,14 @@ export class Interpreter {
 
       case "ExpressionStatement":
         return this.interpret(node.expression);
+
+      case "ClassDeclaration":
+        this.classes.set(node.name, node);
+
+        return;
+
+      case "NewExpression":
+        return this.visitNewExpression(node);
 
       default:
         throw new Error(`Unknown node type`);
