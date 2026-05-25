@@ -50,6 +50,8 @@ export enum TokenType {
   CLASS = "CLASS",
   NEW = "NEW",
 
+  EXTENDS = "EXTENDS",
+
   EOF = "EOF",
 }
 

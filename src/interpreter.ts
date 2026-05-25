@@ -378,8 +378,12 @@ export class Interpreter {
     const instance: Record<string, unknown> = {};
 
     // attach methods
-    for (const method of classDecl.methods) {
-      instance[method.name] = new ClosureValue(method, this.env);
+    const methods: Record<string, ClosureValue> = {};
+
+    this.collectClassMethods(classDecl, methods);
+
+    for (const key in methods) {
+      instance[key] = methods[key];
     }
 
     // constructor
@@ -418,6 +422,27 @@ export class Interpreter {
     }
 
     return instance;
+  }
+
+  private collectClassMethods(
+    classDecl: ClassDeclaration,
+    methods: Record<string, ClosureValue>,
+  ) {
+    // inherit parent first
+    if (classDecl.superClass) {
+      const parent = this.classes.get(classDecl.superClass);
+
+      if (!parent) {
+        throw new Error(`Undefined superclass: ${classDecl.superClass}`);
+      }
+
+      this.collectClassMethods(parent, methods);
+    }
+
+    // child overrides parent
+    for (const method of classDecl.methods) {
+      methods[method.name] = new ClosureValue(method, this.env);
+    }
   }
 
   public interpret(node: ASTNode): any {

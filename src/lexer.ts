@@ -123,6 +123,10 @@ export class Lexer {
       return { type: TokenType.NEW };
     }
 
+    if (result === "extends") {
+      return { type: TokenType.EXTENDS };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,

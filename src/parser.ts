@@ -783,6 +783,22 @@ export class Parser {
 
     this.advance();
 
+    let superClass: string | undefined;
+
+    if (this.currentToken().type === TokenType.EXTENDS) {
+      this.advance();
+
+      const superToken = this.currentToken();
+
+      if (superToken.type !== TokenType.IDENTIFIER) {
+        throw new Error("Expected superclass name");
+      }
+
+      superClass = superToken.value!;
+
+      this.advance();
+    }
+
     if (this.currentToken().type !== TokenType.LBRACE) {
       throw new Error("Expected {");
     }
@@ -805,6 +821,8 @@ export class Parser {
       name,
 
       methods,
+
+      superClass,
     };
   }
 

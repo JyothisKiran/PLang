@@ -200,6 +200,8 @@ export interface ClassDeclaration {
   name: string;
 
   methods: FunctionDeclaration[];
+
+  superClass: string | undefined;
 }
 
 export interface NewExpression {

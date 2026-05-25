@@ -211,20 +211,23 @@ spilltea(false && explode())
 spilltea("===== DONE =====")
 `;
 
-const s1 = `class Person {
+const s1 = `class Animal {
 
-  fn init(name) {
-    this.name = name
-  }
-
-  fn greet() {
-    spilltea(this.name)
+  fn speak() {
+    spilltea("animal")
   }
 }
 
-let p = new Person("alex")
+class Dog extends Animal {
 
-p.greet()`
+  fn speak() {
+    spilltea("dog")
+  }
+}
+
+let d = new Dog()
+
+d.speak()`
 
 const lexer = new Lexer(s1);
 const tokens = lexer.tokenize();
