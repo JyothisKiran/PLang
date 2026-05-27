@@ -27,6 +27,7 @@ export type ASTNode =
   | ClassDeclaration
   | NewExpression
   | SuperCallExpression
+  | ImportStatement
   | IndexExpression;
 
 export interface Program {
@@ -221,4 +222,11 @@ export interface SuperCallExpression {
   method: string;
 
   args: ASTNode[];
+}
+
+export interface ImportStatement {
+
+  type: "ImportStatement";
+
+  moduleName: string;
 }

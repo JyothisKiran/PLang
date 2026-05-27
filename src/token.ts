@@ -54,6 +54,8 @@ export enum TokenType {
 
   SUPER = "SUPER",
 
+  IMPORT = "IMPORT",
+
   EOF = "EOF",
 }
 

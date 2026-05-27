@@ -32,4 +32,8 @@ export class Environment {
 
     throw new Error(`Undefined variable: ${name}`);
   }
+
+  dump(): Map<string, unknown> {
+  return this.values;
+}
 }

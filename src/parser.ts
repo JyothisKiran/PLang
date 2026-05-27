@@ -701,6 +701,10 @@ export class Parser {
     if (token.type === TokenType.IF) {
       return this.parseIfStatement();
     }
+    
+        if (token.type === TokenType.IMPORT) {
+          return this.parseImportStatement();
+        }
 
     if (token.type === TokenType.IDENTIFIER || token.type === TokenType.THIS) {
       return this.parseAssignmentExpression();
@@ -874,6 +878,26 @@ export class Parser {
 
   private parseExpression(): ASTNode {
     return this.parseLogicalExpression();
+  }
+
+  private parseImportStatement(): ASTNode {
+    this.advance(); // skip import
+
+    const token = this.currentToken();
+
+    if (token.type !== TokenType.IDENTIFIER) {
+      throw new Error("Expected module name");
+    }
+
+    const moduleName = token.value!;
+
+    this.advance();
+
+    return {
+      type: "ImportStatement",
+
+      moduleName,
+    };
   }
 
   public parseProgram(): ASTNode {

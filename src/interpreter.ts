@@ -1,3 +1,7 @@
+import * as fs from "fs";
+import path from "path";
+import { Lexer } from "./lexer";
+import { Parser } from "./parser";
 import {
   ASTNode,
   Program,
@@ -19,6 +23,7 @@ import {
   ClassDeclaration,
   NewExpression,
   SuperCallExpression,
+  ImportStatement,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -26,6 +31,8 @@ export class Interpreter {
   constructor(private env: Environment) {}
 
   private classes = new Map<string, ClassDeclaration>();
+
+  private modules = new Map<string, Record<string, unknown>>();
 
   private visitProgram(node: Program) {
     for (const statement of node.body) {
@@ -308,9 +315,11 @@ export class Interpreter {
       throw new Error("Target is not an object");
     }
 
-    let current: Record<string, unknown> | null = obj;
+    const record = obj as Record<string, any>;
 
-    let method: unknown;
+    let current: Record<string, unknown> | null = record;
+
+    let method: unknown = undefined;
 
     while (current) {
       const record = current as Record<string, any>;
@@ -324,7 +333,15 @@ export class Interpreter {
       current = record["__proto__"];
     }
 
-    if (!(method instanceof ClosureValue)) {
+    if (!method) {
+      throw new Error(`Method ${node.method} not found`);
+    }
+
+    if (
+      !method ||
+      typeof method !== "object" ||
+      !(method instanceof ClosureValue)
+    ) {
       throw new Error(`${node.method} is not a method`);
     }
 
@@ -492,6 +509,41 @@ export class Interpreter {
     }
   }
 
+  private visitImportStatement(node: ImportStatement) {
+  const filePath = path.resolve(
+    process.cwd(),
+    `${node.moduleName}.pl`
+  );
+
+  const code = fs.readFileSync(filePath, "utf-8");
+
+  // tokenize
+  const lexer = new Lexer(code);
+  const tokens = lexer.tokenize();
+
+  // parse
+  const parser = new Parser(tokens);
+  const ast = parser.parseProgram();
+
+  // module environment
+  const moduleEnv = new Environment(this.env);
+
+  // execute module
+  const moduleInterpreter = new Interpreter(moduleEnv);
+
+  moduleInterpreter.interpret(ast);
+
+  // build module object
+  const moduleObject: Record<string, unknown> = {};
+
+  for (const [key, value] of moduleEnv.dump()) {
+    moduleObject[key] = value;
+  }
+
+  // expose module
+  this.env.declare(node.moduleName, moduleObject);
+}
+
   private collectClassMethods(
     classDecl: ClassDeclaration,
     methods: Record<string, ClosureValue>,
@@ -615,6 +667,9 @@ export class Interpreter {
 
       case "SuperCallExpression":
         return this.visitSuperCallExpression(node);
+
+      case "ImportStatement":
+        return this.visitImportStatement(node);
 
       default:
         throw new Error(`Unknown node type`);

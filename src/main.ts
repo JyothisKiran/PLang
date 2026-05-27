@@ -211,26 +211,13 @@ spilltea(false && explode())
 spilltea("===== DONE =====")
 `;
 
-const s1 = `class Animal {
+const s1 = `
+import math
 
-  fn speak() {
-    spilltea("animal")
-  }
-}
-
-class Dog extends Animal {
-
-  fn speak() {
-
-    super.speak()
-
-    spilltea("dog")
-  }
-}
-
-let d = new Dog()
-
-d.speak()`
+spilltea(math.add(10, 20))
+spilltea(math.sub(50, 8))
+spilltea(math.pi)
+`;  
 
 const lexer = new Lexer(s1);
 const tokens = lexer.tokenize();

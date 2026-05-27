@@ -21,11 +21,8 @@ export class Lexer {
   }
 
   private peek(): string {
-
-  return this.input[
-    this.position + 1
-  ] ?? "";
-}
+    return this.input[this.position + 1] ?? "";
+  }
 
   private skipWhitespace() {
     while (this.currentChar && /\s/.test(this.currentChar)) {
@@ -35,10 +32,25 @@ export class Lexer {
 
   private number(): Token {
     let result = "";
+    let hasDot = false;
 
-    while (this.currentChar && /[0-9]/.test(this.currentChar)) {
-      result += this.currentChar;
-      this.advance();
+    while (this.currentChar) {
+      // digit
+      if (/[0-9]/.test(this.currentChar)) {
+        result += this.currentChar;
+        this.advance();
+        continue;
+      }
+
+      // decimal point
+      if (this.currentChar === "." && !hasDot) {
+        hasDot = true;
+        result += ".";
+        this.advance();
+        continue;
+      }
+
+      break;
     }
 
     return {
@@ -129,6 +141,10 @@ export class Lexer {
 
     if (result === "super") {
       return { type: TokenType.SUPER };
+    }
+
+    if (result === "import") {
+      return { type: TokenType.IMPORT };
     }
 
     return {
