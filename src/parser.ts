@@ -351,6 +351,52 @@ export class Parser {
       };
     }
 
+    if (token.type === TokenType.SUPER) {
+      this.advance();
+
+      if (this.currentToken().type !== TokenType.DOT) {
+        throw new Error("Expected . after super");
+      }
+
+      this.advance();
+
+      const methodToken = this.currentToken();
+
+      if (methodToken.type !== TokenType.IDENTIFIER) {
+        throw new Error("Expected method name");
+      }
+
+      const method = methodToken.value!;
+
+      this.advance();
+
+      if (this.currentToken().type !== TokenType.LPAREN) {
+        throw new Error("Expected (");
+      }
+
+      this.advance();
+
+      const args: ASTNode[] = [];
+
+      while (this.currentToken().type !== TokenType.RPAREN) {
+        args.push(this.parseExpression());
+
+        if (this.currentToken().type === TokenType.COMMA) {
+          this.advance();
+        }
+      }
+
+      this.advance();
+
+      return {
+        type: "SuperCallExpression",
+
+        method,
+
+        args,
+      };
+    }
+
     throw new Error(`Unexpected token: ${token.type}`);
   }
 

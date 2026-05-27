@@ -18,6 +18,7 @@ import {
   UnaryExpression,
   ClassDeclaration,
   NewExpression,
+  SuperCallExpression,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -334,6 +335,7 @@ export class Interpreter {
 
     // THIS BINDING
     localEnv.declare("this", obj);
+    localEnv.declare("__method", method);
 
     // bind parameters
     for (let i = 0; i < fn.params.length; i++) {
@@ -424,6 +426,72 @@ export class Interpreter {
     return instance;
   }
 
+  private visitSuperCallExpression(node: SuperCallExpression) {
+    const thisObj = this.env.get("this");
+
+    const currentMethod = this.env.get("__method");
+
+    if (!(currentMethod instanceof ClosureValue)) {
+      throw new Error("super used outside method");
+    }
+
+    const ownerClass = currentMethod.ownerClass;
+
+    if (!ownerClass?.superClass) {
+      throw new Error("No superclass");
+    }
+
+    const parentClass = this.classes.get(ownerClass.superClass);
+
+    if (!parentClass) {
+      throw new Error("Superclass not found");
+    }
+
+    const parentMethod = parentClass.methods.find(
+      (m) => m.name === node.method,
+    );
+
+    if (!parentMethod) {
+      throw new Error(`Parent method not found: ${node.method}`);
+    }
+
+    const localEnv = new Environment(this.env);
+
+    localEnv.declare("this", thisObj);
+
+    const closure = new ClosureValue(parentMethod, this.env, parentClass);
+
+    localEnv.declare("__method", closure);
+
+    for (let i = 0; i < parentMethod.params.length; i++) {
+      const param = parentMethod.params[i];
+
+      const arg = node.args[i];
+
+      if (!param || !arg) {
+        continue;
+      }
+
+      localEnv.declare(param, this.interpret(arg));
+    }
+
+    const previous = this.env;
+
+    this.env = localEnv;
+
+    try {
+      for (const stmt of parentMethod.body) {
+        const result = this.interpret(stmt);
+
+        if (result instanceof ReturnValue) {
+          return result.value;
+        }
+      }
+    } finally {
+      this.env = previous;
+    }
+  }
+
   private collectClassMethods(
     classDecl: ClassDeclaration,
     methods: Record<string, ClosureValue>,
@@ -441,7 +509,7 @@ export class Interpreter {
 
     // child overrides parent
     for (const method of classDecl.methods) {
-      methods[method.name] = new ClosureValue(method, this.env);
+      methods[method.name] = new ClosureValue(method, this.env, classDecl);
     }
   }
 
@@ -545,6 +613,9 @@ export class Interpreter {
       case "NewExpression":
         return this.visitNewExpression(node);
 
+      case "SuperCallExpression":
+        return this.visitSuperCallExpression(node);
+
       default:
         throw new Error(`Unknown node type`);
     }
@@ -558,7 +629,10 @@ export class ReturnValue {
 export class ClosureValue {
   constructor(
     public declaration: FunctionDeclaration,
+
     public env: Environment,
+
+    public ownerClass?: ClassDeclaration,
   ) {}
 }
 

@@ -127,6 +127,10 @@ export class Lexer {
       return { type: TokenType.EXTENDS };
     }
 
+    if (result === "super") {
+      return { type: TokenType.SUPER };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,

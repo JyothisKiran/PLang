@@ -221,6 +221,9 @@ const s1 = `class Animal {
 class Dog extends Animal {
 
   fn speak() {
+
+    super.speak()
+
     spilltea("dog")
   }
 }

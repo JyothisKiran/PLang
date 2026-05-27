@@ -26,6 +26,7 @@ export type ASTNode =
   | UnaryExpression
   | ClassDeclaration
   | NewExpression
+  | SuperCallExpression
   | IndexExpression;
 
 export interface Program {
@@ -209,6 +210,15 @@ export interface NewExpression {
   type: "NewExpression";
 
   className: string;
+
+  args: ASTNode[];
+}
+
+export interface SuperCallExpression {
+
+  type: "SuperCallExpression";
+
+  method: string;
 
   args: ASTNode[];
 }

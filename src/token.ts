@@ -52,6 +52,8 @@ export enum TokenType {
 
   EXTENDS = "EXTENDS",
 
+  SUPER = "SUPER",
+
   EOF = "EOF",
 }
 
