@@ -159,6 +159,10 @@ export class Lexer {
       return { type: TokenType.THROW };
     }
 
+    if (result === "for") {
+      return { type: TokenType.FOR };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,
@@ -200,6 +204,16 @@ export class Lexer {
       if (this.currentChar === "!") {
         tokens.push({
           type: TokenType.NOT,
+        });
+
+        this.advance();
+
+        continue;
+      }
+
+      if (this.currentChar === ";") {
+        tokens.push({
+          type: TokenType.SEMICOLON,
         });
 
         this.advance();

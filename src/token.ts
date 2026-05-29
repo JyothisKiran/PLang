@@ -60,6 +60,9 @@ export enum TokenType {
   CATCH = "CATCH",
   THROW = "THROW",
 
+  FOR = "FOR",
+  SEMICOLON = "SEMICOLON",
+
   EOF = "EOF",
 }
 

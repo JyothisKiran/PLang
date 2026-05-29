@@ -212,24 +212,14 @@ spilltea("===== DONE =====")
 `;
 
 const s1 = `
-spilltea("before")
+spilltea("FOR LOOP TEST")
 
-try {
+for (let i = 0; i < 5; i = i + 1) {
 
-  spilltea("inside try")
-
-  throw "Something failed"
-
-  spilltea("never runs")
-
-} catch (err) {
-
-  spilltea("caught:")
-
-  spilltea(err)
+  spilltea(i)
 }
 
-spilltea("after")
+spilltea("DONE")
 `;  
 
 const lexer = new Lexer(s1);

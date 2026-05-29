@@ -734,6 +734,10 @@ export class Parser {
       return this.parseClassDeclaration();
     }
 
+    if (token.type === TokenType.FOR) {
+      return this.parseForStatement();
+    }
+
     return this.parseExpressionStatement();
   }
 
@@ -982,6 +986,72 @@ export class Parser {
       tryBlock,
       catchParam,
       catchBlock,
+    };
+  }
+
+  private parseForStatement(): ASTNode {
+    this.advance(); // skip for
+
+    if (this.currentToken().type !== TokenType.LPAREN) {
+      throw new Error("Expected ( after for");
+    }
+
+    this.advance();
+
+    // initializer
+    let initializer: ASTNode;
+
+    if (this.currentToken().type === TokenType.LET) {
+      initializer = this.parseVariableDeclaration();
+    } else {
+      initializer = this.parseAssignmentExpression();
+    }
+
+    if (this.currentToken().type !== TokenType.SEMICOLON) {
+      throw new Error("Expected ;");
+    }
+
+    this.advance();
+
+    // condition
+    const condition = this.parseExpression();
+
+    if (this.currentToken().type !== TokenType.SEMICOLON) {
+      throw new Error("Expected ;");
+    }
+
+    this.advance();
+
+    // increment
+    const increment = this.parseAssignmentExpression();
+
+    if (this.currentToken().type !== TokenType.RPAREN) {
+      throw new Error("Expected )");
+    }
+
+    this.advance();
+
+    // body
+    if (this.currentToken().type !== TokenType.LBRACE) {
+      throw new Error("Expected {");
+    }
+
+    this.advance();
+
+    const body: ASTNode[] = [];
+
+    while (this.currentToken().type !== TokenType.RBRACE) {
+      body.push(this.parseStatement());
+    }
+
+    this.advance();
+
+    return {
+      type: "ForStatement",
+      initializer,
+      condition,
+      increment,
+      body,
     };
   }
 

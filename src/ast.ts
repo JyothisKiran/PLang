@@ -30,6 +30,7 @@ export type ASTNode =
   | ImportStatement
   | ThrowStatement
   | TryCatchStatement
+  | ForStatement
   | IndexExpression;
 
 export interface Program {
@@ -246,4 +247,16 @@ export interface TryCatchStatement {
   catchParam: string;
 
   catchBlock: ASTNode[];
+}
+
+export interface ForStatement {
+  type: "ForStatement";
+
+  initializer: ASTNode;
+
+  condition: ASTNode;
+
+  increment: ASTNode;
+
+  body: ASTNode[];
 }

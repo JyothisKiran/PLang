@@ -26,6 +26,7 @@ import {
   ImportStatement,
   ThrowStatement,
   TryCatchStatement,
+  ForStatement,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -597,6 +598,24 @@ export class Interpreter {
     }
   }
 
+  private visitForStatement(node: ForStatement) {
+    // initializer
+    this.interpret(node.initializer);
+
+    while (this.interpret(node.condition)) {
+      for (const stmt of node.body) {
+        const result = this.interpret(stmt);
+
+        if (result instanceof ReturnValue) {
+          return result;
+        }
+      }
+
+      // increment
+      this.interpret(node.increment);
+    }
+  }
+
   public interpret(node: ASTNode): any {
     switch (node.type) {
       case "Program":
@@ -708,6 +727,9 @@ export class Interpreter {
 
       case "TryCatchStatement":
         return this.visitTryCatchStatement(node);
+
+      case "ForStatement":
+        return this.visitForStatement(node);
 
       default:
         throw new Error(`Unknown node type`);
