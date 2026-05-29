@@ -28,6 +28,8 @@ export type ASTNode =
   | NewExpression
   | SuperCallExpression
   | ImportStatement
+  | ThrowStatement
+  | TryCatchStatement
   | IndexExpression;
 
 export interface Program {
@@ -229,4 +231,19 @@ export interface ImportStatement {
   type: "ImportStatement";
 
   moduleName: string;
+}
+
+export interface ThrowStatement {
+  type: "ThrowStatement";
+  value: ASTNode;
+}
+
+export interface TryCatchStatement {
+  type: "TryCatchStatement";
+
+  tryBlock: ASTNode[];
+
+  catchParam: string;
+
+  catchBlock: ASTNode[];
 }

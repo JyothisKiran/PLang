@@ -701,10 +701,18 @@ export class Parser {
     if (token.type === TokenType.IF) {
       return this.parseIfStatement();
     }
-    
-        if (token.type === TokenType.IMPORT) {
-          return this.parseImportStatement();
-        }
+
+    if (token.type === TokenType.IMPORT) {
+      return this.parseImportStatement();
+    }
+
+    if (token.type === TokenType.TRY) {
+      return this.parseTryCatchStatement();
+    }
+
+    if (token.type === TokenType.THROW) {
+      return this.parseThrowStatement();
+    }
 
     if (token.type === TokenType.IDENTIFIER || token.type === TokenType.THIS) {
       return this.parseAssignmentExpression();
@@ -897,6 +905,83 @@ export class Parser {
       type: "ImportStatement",
 
       moduleName,
+    };
+  }
+
+  private parseThrowStatement(): ASTNode {
+    this.advance(); // skip throw
+
+    return {
+      type: "ThrowStatement",
+      value: this.parseExpression(),
+    };
+  }
+
+  private parseTryCatchStatement(): ASTNode {
+    this.advance(); // skip try
+
+    if (this.currentToken().type !== TokenType.LBRACE) {
+      throw new Error("Expected { after try");
+    }
+
+    this.advance();
+
+    const tryBlock: ASTNode[] = [];
+
+    while (this.currentToken().type !== TokenType.RBRACE) {
+      tryBlock.push(this.parseStatement());
+    }
+
+    this.advance(); // skip }
+
+    // catch
+    if (this.currentToken().type !== TokenType.CATCH) {
+      throw new Error("Expected catch");
+    }
+
+    this.advance();
+
+    if (this.currentToken().type !== TokenType.LPAREN) {
+      throw new Error("Expected (");
+    }
+
+    this.advance();
+
+    const errorToken = this.currentToken();
+
+    if (errorToken.type !== TokenType.IDENTIFIER) {
+      throw new Error("Expected catch variable");
+    }
+
+    const catchParam = errorToken.value!;
+
+    this.advance();
+
+    if (this.currentToken().type !== TokenType.RPAREN) {
+      throw new Error("Expected )");
+    }
+
+    this.advance();
+
+    if (this.currentToken().type !== TokenType.LBRACE) {
+      throw new Error("Expected {");
+    }
+
+    this.advance();
+
+    const catchBlock: ASTNode[] = [];
+
+    while (this.currentToken().type !== TokenType.RBRACE) {
+      catchBlock.push(this.parseStatement());
+    }
+
+    this.advance();
+
+    return {
+      type: "TryCatchStatement",
+      tryBlock,
+      catchParam,
+      catchBlock,
     };
   }
 

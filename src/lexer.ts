@@ -147,6 +147,18 @@ export class Lexer {
       return { type: TokenType.IMPORT };
     }
 
+    if (result === "try") {
+      return { type: TokenType.TRY };
+    }
+
+    if (result === "catch") {
+      return { type: TokenType.CATCH };
+    }
+
+    if (result === "throw") {
+      return { type: TokenType.THROW };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,

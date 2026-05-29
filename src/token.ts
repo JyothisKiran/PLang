@@ -10,7 +10,7 @@ export enum TokenType {
 
   SPILLTEA = "SPILLTEA",
 
-// Keywords
+  // Keywords
   LET = "LET",
   IDENTIFIER = "IDENTIFIER",
   ASSIGN = "ASSIGN",
@@ -55,6 +55,10 @@ export enum TokenType {
   SUPER = "SUPER",
 
   IMPORT = "IMPORT",
+
+  TRY = "TRY",
+  CATCH = "CATCH",
+  THROW = "THROW",
 
   EOF = "EOF",
 }

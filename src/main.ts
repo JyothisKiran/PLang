@@ -212,11 +212,24 @@ spilltea("===== DONE =====")
 `;
 
 const s1 = `
-import math
+spilltea("before")
 
-spilltea(math.add(10, 20))
-spilltea(math.sub(50, 8))
-spilltea(math.pi)
+try {
+
+  spilltea("inside try")
+
+  throw "Something failed"
+
+  spilltea("never runs")
+
+} catch (err) {
+
+  spilltea("caught:")
+
+  spilltea(err)
+}
+
+spilltea("after")
 `;  
 
 const lexer = new Lexer(s1);

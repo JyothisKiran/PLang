@@ -24,6 +24,8 @@ import {
   NewExpression,
   SuperCallExpression,
   ImportStatement,
+  ThrowStatement,
+  TryCatchStatement,
 } from "./ast";
 import { Environment } from "./environment";
 
@@ -510,40 +512,70 @@ export class Interpreter {
   }
 
   private visitImportStatement(node: ImportStatement) {
-  const filePath = path.resolve(
-    process.cwd(),
-    `${node.moduleName}.pl`
-  );
+    const filePath = path.resolve(process.cwd(), `${node.moduleName}.pl`);
 
-  const code = fs.readFileSync(filePath, "utf-8");
+    const code = fs.readFileSync(filePath, "utf-8");
 
-  // tokenize
-  const lexer = new Lexer(code);
-  const tokens = lexer.tokenize();
+    // tokenize
+    const lexer = new Lexer(code);
+    const tokens = lexer.tokenize();
 
-  // parse
-  const parser = new Parser(tokens);
-  const ast = parser.parseProgram();
+    // parse
+    const parser = new Parser(tokens);
+    const ast = parser.parseProgram();
 
-  // module environment
-  const moduleEnv = new Environment(this.env);
+    // module environment
+    const moduleEnv = new Environment(this.env);
 
-  // execute module
-  const moduleInterpreter = new Interpreter(moduleEnv);
+    // execute module
+    const moduleInterpreter = new Interpreter(moduleEnv);
 
-  moduleInterpreter.interpret(ast);
+    moduleInterpreter.interpret(ast);
 
-  // build module object
-  const moduleObject: Record<string, unknown> = {};
+    // build module object
+    const moduleObject: Record<string, unknown> = {};
 
-  for (const [key, value] of moduleEnv.dump()) {
-    moduleObject[key] = value;
+    for (const [key, value] of moduleEnv.dump()) {
+      moduleObject[key] = value;
+    }
+
+    // expose module
+    this.env.declare(node.moduleName, moduleObject);
   }
 
-  // expose module
-  this.env.declare(node.moduleName, moduleObject);
-}
+  private visitThrowStatement(node: ThrowStatement) {
+    throw new RuntimeThrow(this.interpret(node.value));
+  }
 
+  private visitTryCatchStatement(node: TryCatchStatement) {
+    try {
+      for (const stmt of node.tryBlock) {
+        this.interpret(stmt);
+      }
+    } catch (err) {
+      if (err instanceof RuntimeThrow) {
+        const catchEnv = new Environment(this.env);
+
+        catchEnv.declare(node.catchParam, err.value);
+
+        const previousEnv = this.env;
+
+        this.env = catchEnv;
+
+        try {
+          for (const stmt of node.catchBlock) {
+            this.interpret(stmt);
+          }
+        } finally {
+          this.env = previousEnv;
+        }
+
+        return;
+      }
+
+      throw err;
+    }
+  }
   private collectClassMethods(
     classDecl: ClassDeclaration,
     methods: Record<string, ClosureValue>,
@@ -671,6 +703,12 @@ export class Interpreter {
       case "ImportStatement":
         return this.visitImportStatement(node);
 
+      case "ThrowStatement":
+        return this.visitThrowStatement(node);
+
+      case "TryCatchStatement":
+        return this.visitTryCatchStatement(node);
+
       default:
         throw new Error(`Unknown node type`);
     }
@@ -679,6 +717,10 @@ export class Interpreter {
 
 export class ReturnValue {
   constructor(public value: any) {}
+}
+
+export class RuntimeThrow {
+  constructor(public value: unknown) {}
 }
 
 export class ClosureValue {
