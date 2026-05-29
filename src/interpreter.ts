@@ -149,13 +149,15 @@ export class Interpreter {
   }
 
   private visitIfStatement(node: IfStatement) {
-    const condition = this.interpret(node.condition);
+    if (this.interpret(node.condition)) {
+      for (const stmt of node.body) {
+        const result = this.interpret(stmt);
 
-    if (condition) {
-      for (const statement of node.body) {
-        const result = this.interpret(statement);
-
-        if (result instanceof ReturnValue) {
+        if (
+          result instanceof BreakSignal ||
+          result instanceof ContinueSignal ||
+          result instanceof ReturnValue
+        ) {
           return result;
         }
       }
@@ -207,8 +209,16 @@ export class Interpreter {
 
   private visitWhileStatement(node: WhileStatement) {
     while (this.interpret(node.condition)) {
-      for (const statement of node.body) {
-        const result = this.interpret(statement);
+      for (const stmt of node.body) {
+        const result = this.interpret(stmt);
+
+        if (result instanceof BreakSignal) {
+          return;
+        }
+
+        if (result instanceof ContinueSignal) {
+          break;
+        }
 
         if (result instanceof ReturnValue) {
           return result;
@@ -602,17 +612,26 @@ export class Interpreter {
     // initializer
     this.interpret(node.initializer);
 
-    while (this.interpret(node.condition)) {
+    while (node.condition ? this.interpret(node.condition) : true) {
       for (const stmt of node.body) {
         const result = this.interpret(stmt);
+
+        if (result instanceof BreakSignal) {
+          return;
+        }
+
+        if (result instanceof ContinueSignal) {
+          break;
+        }
 
         if (result instanceof ReturnValue) {
           return result;
         }
       }
 
-      // increment
-      this.interpret(node.increment);
+      if (node.increment) {
+        this.interpret(node.increment);
+      }
     }
   }
 
@@ -731,6 +750,12 @@ export class Interpreter {
       case "ForStatement":
         return this.visitForStatement(node);
 
+      case "BreakStatement":
+        return new BreakSignal();
+
+      case "ContinueStatement":
+        return new ContinueSignal();
+
       default:
         throw new Error(`Unknown node type`);
     }
@@ -740,6 +765,10 @@ export class Interpreter {
 export class ReturnValue {
   constructor(public value: any) {}
 }
+
+class BreakSignal {}
+
+class ContinueSignal {}
 
 export class RuntimeThrow {
   constructor(public value: unknown) {}

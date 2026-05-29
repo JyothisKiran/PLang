@@ -738,8 +738,32 @@ export class Parser {
       return this.parseForStatement();
     }
 
+    if (token.type === TokenType.BREAK) {
+      return this.parseBreakStatement();
+    }
+
+    if (token.type === TokenType.CONTINUE) {
+      return this.parseContinueStatement();
+    }
+
     return this.parseExpressionStatement();
   }
+
+  private parseBreakStatement(): ASTNode {
+  this.advance();
+
+  return {
+    type: "BreakStatement",
+  };
+}
+
+private parseContinueStatement(): ASTNode {
+  this.advance();
+
+  return {
+    type: "ContinueStatement",
+  };
+}
 
   private parseExpressionStatement(): ASTNode {
     const expr = this.parseExpression();

@@ -163,6 +163,14 @@ export class Lexer {
       return { type: TokenType.FOR };
     }
 
+    if (result === "break") {
+      return { type: TokenType.BREAK };
+    }
+
+    if (result === "continue") {
+      return { type: TokenType.CONTINUE };
+    }
+
     return {
       type: TokenType.IDENTIFIER,
       value: result,

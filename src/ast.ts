@@ -31,6 +31,8 @@ export type ASTNode =
   | ThrowStatement
   | TryCatchStatement
   | ForStatement
+  | BreakStatement
+  | ContinueStatement
   | IndexExpression;
 
 export interface Program {
@@ -259,4 +261,12 @@ export interface ForStatement {
   increment: ASTNode;
 
   body: ASTNode[];
+}
+
+export interface BreakStatement {
+  type: "BreakStatement";
+}
+
+export interface ContinueStatement {
+  type: "ContinueStatement";
 }

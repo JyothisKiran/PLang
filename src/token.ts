@@ -63,6 +63,9 @@ export enum TokenType {
   FOR = "FOR",
   SEMICOLON = "SEMICOLON",
 
+  BREAK = "BREAK",
+  CONTINUE = "CONTINUE",
+
   EOF = "EOF",
 }
 
