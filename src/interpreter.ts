@@ -29,13 +29,21 @@ import {
   ForStatement,
 } from "./ast";
 import { Environment } from "./environment";
+import { NativeRegistry } from "./runtime/nativeRegistry";
 
 export class Interpreter {
-  constructor(private env: Environment) {}
-
   private classes = new Map<string, ClassDeclaration>();
 
   private modules = new Map<string, Record<string, unknown>>();
+
+  private native: NativeRegistry;
+
+  constructor(
+    private env: Environment,
+    native: NativeRegistry,
+  ) {
+    this.native = native;
+  }
 
   private visitProgram(node: Program) {
     for (const statement of node.body) {
@@ -228,6 +236,14 @@ export class Interpreter {
   }
 
   private visitCallExpression(node: CallExpression) {
+    const nativeFn = this.native.get(node.callee);
+
+    if (nativeFn) {
+      const args = node.args.map((arg) => this.interpret(arg));
+
+      return nativeFn(...args);
+    }
+
     const callable = this.env.get(node.callee);
 
     // evaluate arguments
@@ -539,7 +555,7 @@ export class Interpreter {
     const moduleEnv = new Environment(this.env);
 
     // execute module
-    const moduleInterpreter = new Interpreter(moduleEnv);
+    const moduleInterpreter = new Interpreter(moduleEnv, this.native);
 
     moduleInterpreter.interpret(ast);
 

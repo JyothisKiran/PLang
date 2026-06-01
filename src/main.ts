@@ -2,6 +2,8 @@ import { Lexer } from "./lexer";
 import { Parser } from "./parser";
 import { Interpreter, NativeFunctionValue } from "./interpreter";
 import { Environment } from "./environment";
+import { registerBuiltins } from "./runtime/builtins";
+import { NativeRegistry } from "./runtime/nativeRegistry";
 
 const source = `
 spilltea("===== VARIABLES =====")
@@ -212,11 +214,8 @@ spilltea("===== DONE =====")
 `;
 
 const s1 = `
-try {
-  throw "hello"
-} catch (err) {
-  spilltea(err)
-}
+spilltea(add(10, 20))
+spilltea(len("hello"))
 `;  
 
 const lexer = new Lexer(s1);
@@ -231,6 +230,13 @@ const ast = parser.parseProgram();
 console.log(JSON.stringify(ast, null, 2));
 
 const env = new Environment();
+
+const native = new NativeRegistry();
+
+registerBuiltins(native);
+
+const interpreter =
+  new Interpreter(env, native);
 env.declare(
   "len",
 
@@ -307,6 +313,4 @@ env.declare(
     }
   )
 );
-const interpreter = new Interpreter(env);
-
 interpreter.interpret(ast);
